@@ -3,7 +3,7 @@ export type AppRole = "manager" | "shift_lead" | "staff";
 export interface Position {
   id: string;
   name: string;
-  department: "front_of_house" | "back_of_house";
+  department: string;
   sort_order: number;
 }
 
