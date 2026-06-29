@@ -45,7 +45,7 @@ function SetupPage() {
       });
       if (signErr) throw signErr;
       toast.success("Manager account created.");
-      navigate({ to: "/", replace: true });
+      navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Setup failed");
     } finally {

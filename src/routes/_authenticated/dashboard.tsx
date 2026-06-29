@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Users, Calendar } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Today — Staff HQ" }] }),
   component: HomePage,
 });
