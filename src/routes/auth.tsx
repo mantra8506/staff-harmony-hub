@@ -31,7 +31,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/", replace: true });
+      if (data.user) navigate({ to: "/dashboard", replace: true });
     });
   }, [navigate]);
 
@@ -44,7 +44,7 @@ function AuthPage() {
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/", replace: true });
+    navigate({ to: "/dashboard", replace: true });
   }
 
   return (

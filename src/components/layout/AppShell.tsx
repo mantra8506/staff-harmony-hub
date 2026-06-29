@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <Link to="/" className="text-base font-semibold">
+          <Link to="/dashboard" className="text-base font-semibold">
             Staff HQ
           </Link>
           <nav className="hidden gap-1 md:flex">
