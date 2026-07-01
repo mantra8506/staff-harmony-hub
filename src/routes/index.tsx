@@ -536,7 +536,6 @@ function ScheduleMock() {
               })}
             </Fragment>
           ))}
-          ))}
         </div>
       </div>
     </div>
