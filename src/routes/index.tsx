@@ -440,7 +440,7 @@ function Benefits() {
           {BENEFITS.map((b) => (
             <div key={b.title} className="flex gap-4">
               <span className="mt-0.5 inline-grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-emerald/10 text-accent-emerald">
-                <b.icon className="h-4.5 w-4.5" />
+                <b.icon className="h-4 w-4" />
               </span>
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold">{b.title}</h3>
