@@ -40,27 +40,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability: Json
           created_at: string
           full_name: string
           id: string
+          max_hours_per_week: number | null
+          notes: string | null
           phone: string | null
           primary_position_id: string | null
+          secondary_position_ids: string[]
+          status: Database["public"]["Enums"]["staff_status"]
           updated_at: string
         }
         Insert: {
+          availability?: Json
           created_at?: string
           full_name: string
           id: string
+          max_hours_per_week?: number | null
+          notes?: string | null
           phone?: string | null
           primary_position_id?: string | null
+          secondary_position_ids?: string[]
+          status?: Database["public"]["Enums"]["staff_status"]
           updated_at?: string
         }
         Update: {
+          availability?: Json
           created_at?: string
           full_name?: string
           id?: string
+          max_hours_per_week?: number | null
+          notes?: string | null
           phone?: string | null
           primary_position_id?: string | null
+          secondary_position_ids?: string[]
+          status?: Database["public"]["Enums"]["staff_status"]
           updated_at?: string
         }
         Relationships: [
@@ -110,6 +125,7 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "shift_lead" | "staff"
+      staff_status: "active" | "inactive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -238,6 +254,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "shift_lead", "staff"],
+      staff_status: ["active", "inactive"],
     },
   },
 } as const
