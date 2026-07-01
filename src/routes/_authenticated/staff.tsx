@@ -1,26 +1,29 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Mail } from "lucide-react";
+import { Plus, Pencil, Mail, Search, Power, PowerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   positionsQueryOptions,
   staffQueryOptions,
 } from "@/features/staff/queries";
 import { StaffFormDialog } from "@/features/staff/components/StaffFormDialog";
-import { removeStaff } from "@/lib/staff/staff.functions";
+import { setStaffStatus } from "@/lib/staff/staff.functions";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import type { StaffMember } from "@/features/staff/types";
 
@@ -38,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/staff")({
       {error.message}
     </div>
   ),
+  notFoundComponent: () => <div className="p-4">Staff not found.</div>,
 });
 
 function StaffPage() {
@@ -49,25 +53,43 @@ function StaffPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
-  const [removing, setRemoving] = useState<StaffMember | null>(null);
+  const [query, setQuery] = useState("");
+  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "inactive" | "all">("active");
 
-  const removeMutation = useMutation({
-    mutationFn: (userId: string) => removeStaff({ data: { userId } }),
-    onSuccess: () => {
-      toast.success("Staff member removed.");
+  const statusMutation = useMutation({
+    mutationFn: (v: { userId: string; status: "active" | "inactive" }) =>
+      setStaffStatus({ data: v }),
+    onSuccess: (_d, v) => {
+      toast.success(v.status === "active" ? "Staff activated." : "Staff deactivated.");
       queryClient.invalidateQueries({ queryKey: staffQueryOptions.queryKey });
-      setRemoving(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return staff.data.filter((m) => {
+      if (statusFilter !== "all" && m.status !== statusFilter) return false;
+      if (positionFilter !== "all") {
+        const inPrimary = m.primary_position_id === positionFilter;
+        const inSecondary = m.secondary_position_ids.includes(positionFilter);
+        if (!inPrimary && !inSecondary) return false;
+      }
+      if (q && !m.full_name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [staff.data, query, positionFilter, statusFilter]);
+
+  const totalActive = staff.data.filter((m) => m.status === "active").length;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Staff</h1>
           <p className="text-sm text-muted-foreground">
-            {staff.data.length} {staff.data.length === 1 ? "person" : "people"} on the team
+            {totalActive} active · {staff.data.length} total
           </p>
         </div>
         {isManager && (
@@ -77,30 +99,70 @@ function StaffPage() {
               setDialogOpen(true);
             }}
           >
-            <Plus className="mr-1 size-4" /> Invite
+            <Plus className="mr-1 size-4" /> Invite staff
           </Button>
         )}
+      </header>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            placeholder="Search by name"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search staff"
+          />
+        </div>
+        <Select value={positionFilter} onValueChange={setPositionFilter}>
+          <SelectTrigger className="sm:w-56" aria-label="Filter by position">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All positions</SelectItem>
+            {positions.data.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border">
-        {staff.data.length === 0 ? (
+      <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+        <TabsList>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="inactive">Inactive</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <section aria-label="Staff list" className="overflow-hidden rounded-lg border border-border">
+        {filtered.length === 0 ? (
           <div className="p-8 text-center text-sm text-muted-foreground">
-            No staff yet. {isManager ? "Invite your first team member." : ""}
+            {staff.data.length === 0
+              ? isManager
+                ? "No staff yet. Invite your first team member."
+                : "No staff yet."
+              : "No staff match your filters."}
           </div>
         ) : (
           <ul className="divide-y divide-border">
-            {staff.data.map((m) => (
-              <li
-                key={m.id}
-                className="flex items-center justify-between gap-3 px-4 py-3"
-              >
-                <div className="min-w-0">
+            {filtered.map((m) => (
+              <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <Link
+                  to="/staff/$userId"
+                  params={{ userId: m.id }}
+                  className="min-w-0 flex-1 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{m.full_name}</span>
+                    <span className="truncate font-medium">{m.full_name}</span>
                     {m.roles.includes("manager") && (
-                      <Badge variant="secondary" className="text-xs">
-                        Manager
-                      </Badge>
+                      <Badge variant="secondary" className="text-xs">Manager</Badge>
+                    )}
+                    {m.status === "inactive" && (
+                      <Badge variant="outline" className="text-xs">Inactive</Badge>
                     )}
                     {m.pending_invite && (
                       <Badge variant="outline" className="text-xs">
@@ -109,11 +171,11 @@ function StaffPage() {
                     )}
                   </div>
                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {m.position_name ?? "No position"}
+                    {m.primary_position_name ?? "No position"}
                     {m.phone ? ` · ${m.phone}` : ""}
                     {m.email ? ` · ${m.email}` : ""}
                   </div>
-                </div>
+                </Link>
                 {isManager && (
                   <div className="flex shrink-0 items-center gap-1">
                     <Button
@@ -123,7 +185,7 @@ function StaffPage() {
                         setEditing(m);
                         setDialogOpen(true);
                       }}
-                      aria-label="Edit"
+                      aria-label={`Edit ${m.full_name}`}
                     >
                       <Pencil className="size-4" />
                     </Button>
@@ -131,10 +193,24 @@ function StaffPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setRemoving(m)}
-                        aria-label="Remove"
+                        disabled={statusMutation.isPending}
+                        onClick={() =>
+                          statusMutation.mutate({
+                            userId: m.id,
+                            status: m.status === "active" ? "inactive" : "active",
+                          })
+                        }
+                        aria-label={
+                          m.status === "active"
+                            ? `Deactivate ${m.full_name}`
+                            : `Activate ${m.full_name}`
+                        }
                       >
-                        <Trash2 className="size-4" />
+                        {m.status === "active" ? (
+                          <PowerOff className="size-4" />
+                        ) : (
+                          <Power className="size-4" />
+                        )}
                       </Button>
                     )}
                   </div>
@@ -143,7 +219,7 @@ function StaffPage() {
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
       <StaffFormDialog
         open={dialogOpen}
@@ -151,27 +227,6 @@ function StaffPage() {
         positions={positions.data}
         member={editing}
       />
-
-      <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove {removing?.full_name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete their account and access. You can re-invite them
-              later if needed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => removing && removeMutation.mutate(removing.id)}
-              disabled={removeMutation.isPending}
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
