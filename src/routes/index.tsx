@@ -500,8 +500,8 @@ function ScheduleMock() {
             </div>
           ))}
           {people.map((p, pi) => (
-            <>
-              <div key={`${p}-name`} className="flex items-center px-2 py-2 font-medium">
+            <Fragment key={p}>
+              <div className="flex items-center px-2 py-2 font-medium">
                 {p}
               </div>
               {days.map((d, di) => {
@@ -534,7 +534,8 @@ function ScheduleMock() {
                   </div>
                 );
               })}
-            </>
+            </Fragment>
+          ))}
           ))}
         </div>
       </div>
