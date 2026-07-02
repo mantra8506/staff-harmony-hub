@@ -246,6 +246,9 @@ function SchedulePage() {
 
 function Header({
   weekStart,
+  weekStartISO,
+  weekStatus,
+  isManager,
   onPrev,
   onNext,
   onToday,
@@ -254,6 +257,9 @@ function Header({
   totalShifts,
 }: {
   weekStart: Date;
+  weekStartISO: string;
+  weekStatus: ScheduleWeek;
+  isManager: boolean;
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -263,18 +269,65 @@ function Header({
 }) {
   const isCurrent =
     toISODate(weekStart) === toISODate(startOfWeek(new Date()));
+  const isPublished = weekStatus.status === "published";
+  const queryClient = useQueryClient();
+  const publishFn = useServerFn(publishWeek);
+  const unpublishFn = useServerFn(unpublishWeek);
+
+  const publishM = useMutation({
+    mutationFn: () => publishFn({ data: { weekStart: weekStartISO } }),
+    onSuccess: () => {
+      toast.success("Schedule published");
+      queryClient.invalidateQueries({ queryKey: ["schedule-week", weekStartISO] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to publish"),
+  });
+  const unpublishM = useMutation({
+    mutationFn: () => unpublishFn({ data: { weekStart: weekStartISO } }),
+    onSuccess: () => {
+      toast.success("Schedule unpublished");
+      queryClient.invalidateQueries({ queryKey: ["schedule-week", weekStartISO] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to unpublish"),
+  });
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CalendarDays className="h-5 w-5 text-brand" />
           <h1 className="text-2xl font-semibold tracking-tight">
             Weekly schedule
           </h1>
+          <Badge
+            variant="outline"
+            className={cn(
+              "gap-1 capitalize",
+              isPublished
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"
+                : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100",
+            )}
+          >
+            {isPublished ? (
+              <Lock className="h-3 w-3" />
+            ) : (
+              <LockOpen className="h-3 w-3" />
+            )}
+            {weekStatus.status}
+          </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           {formatWeekRange(weekStart)} · {totalShifts} shifts ·{" "}
           {totalHours.toFixed(1)} hrs
+          {isPublished && weekStatus.published_at && (
+            <>
+              {" · published "}
+              {new Date(weekStatus.published_at).toLocaleDateString()}
+              {weekStatus.published_by_name
+                ? ` by ${weekStatus.published_by_name}`
+                : ""}
+            </>
+          )}
         </p>
       </div>
 
@@ -296,13 +349,41 @@ function Header({
           </Button>
         </div>
         {onAdd && (
-          <Button onClick={onAdd}>
+          <Button variant="outline" onClick={onAdd}>
             <Plus className="h-4 w-4" />
             Add shift
           </Button>
         )}
+        {isManager &&
+          (isPublished ? (
+            <Button
+              variant="outline"
+              onClick={() => unpublishM.mutate()}
+              disabled={unpublishM.isPending}
+            >
+              {unpublishM.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LockOpen className="h-4 w-4" />
+              )}
+              Unpublish
+            </Button>
+          ) : (
+            <Button
+              onClick={() => publishM.mutate()}
+              disabled={publishM.isPending || totalShifts === 0}
+            >
+              {publishM.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
+              Publish week
+            </Button>
+          ))}
       </div>
     </div>
+
   );
 }
 
