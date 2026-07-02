@@ -13,6 +13,39 @@ export interface Shift {
   created_at: string;
 }
 
+export interface ScheduleWeek {
+  week_start: string; // YYYY-MM-DD (Monday)
+  status: "draft" | "published";
+  published_at: string | null;
+  published_by: string | null;
+  published_by_name: string | null;
+}
+
+export type SwapStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+export interface SwapRequest {
+  id: string;
+  shift_id: string;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  position_id: string | null;
+  position_name: string | null;
+  from_employee_id: string;
+  from_employee_name: string;
+  to_employee_id: string;
+  to_employee_name: string;
+  proposed_by: string;
+  proposed_by_name: string | null;
+  status: SwapStatus;
+  reason: string | null;
+  decision_notes: string | null;
+  decided_by: string | null;
+  decided_by_name: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
+
 /* ---------------- Week helpers (Monday-start) ---------------- */
 
 export function toISODate(d: Date): string {
