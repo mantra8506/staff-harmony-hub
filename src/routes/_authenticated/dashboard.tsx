@@ -482,9 +482,10 @@ const MODULES: Module[] = [
   },
   {
     title: "Scheduling",
-    description: "Weekly shift planning and publishing.",
+    description: "Weekly shift planning at a glance.",
     icon: CalendarDays,
-    status: "soon",
+    to: "/schedule",
+    status: "live",
   },
   {
     title: "Attendance",
