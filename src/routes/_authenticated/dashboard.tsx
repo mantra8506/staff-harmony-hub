@@ -5,6 +5,7 @@ import {
   BarChart3,
   CalendarDays,
   CalendarPlus,
+  Clock,
   ClipboardList,
   Inbox,
   LucideIcon,
@@ -22,12 +23,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { RESTAURANT } from "@/components/layout/AppShell";
 import { staffQueryOptions } from "@/features/staff/queries";
+import { shiftsQueryOptions } from "@/features/schedule/queries";
+import {
+  addDays,
+  formatTime,
+  formatWeekRange,
+  shiftHours,
+  startOfWeek,
+  toISODate,
+  type Shift,
+} from "@/features/schedule/types";
 import type { StaffMember } from "@/features/staff/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: `Dashboard — ${RESTAURANT.name}` }] }),
   loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData(staffQueryOptions);
+    const weekStart = toISODate(startOfWeek(new Date()));
+    const weekEnd = toISODate(addDays(startOfWeek(new Date()), 6));
+    await Promise.all([
+      context.queryClient.ensureQueryData(staffQueryOptions),
+      context.queryClient.ensureQueryData(shiftsQueryOptions(weekStart, weekEnd)),
+    ]);
   },
   component: DashboardPage,
 });
@@ -43,6 +59,12 @@ function DashboardPage() {
   const staffQ = useSuspenseQuery(staffQueryOptions);
   const staff = staffQ.data;
 
+  const weekStart = startOfWeek(new Date());
+  const weekStartISO = toISODate(weekStart);
+  const weekEndISO = toISODate(addDays(weekStart, 6));
+  const shiftsQ = useSuspenseQuery(shiftsQueryOptions(weekStartISO, weekEndISO));
+  const shifts = shiftsQ.data;
+
   const total = staff.length;
   const active = staff.filter((m) => m.status === "active").length;
   const pending = staff.filter(
@@ -52,6 +74,29 @@ function DashboardPage() {
     .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
     .slice(0, 3);
 
+  const todayISO = toISODate(new Date());
+  const todaysShifts = shifts
+    .filter((s) => s.work_date === todayISO)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+  const scheduledTodayCount = new Set(todaysShifts.map((s) => s.employee_id)).size;
+  const totalWeekHours = shifts.reduce(
+    (a, s) => a + shiftHours(s.start_time, s.end_time, s.break_minutes),
+    0,
+  );
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nextShift = todaysShifts.find((s) => {
+    const [h, m] = s.start_time.split(":").map(Number);
+    return h * 60 + m > nowMinutes;
+  }) ?? shifts
+    .filter((s) => s.work_date > todayISO)
+    .sort((a, b) =>
+      a.work_date === b.work_date
+        ? a.start_time.localeCompare(b.start_time)
+        : a.work_date.localeCompare(b.work_date),
+    )[0] ?? null;
+
   return (
     <div className="space-y-10">
       <Welcome name={displayName} role={isManager ? "Manager" : "Staff"} />
@@ -59,7 +104,14 @@ function DashboardPage() {
         total={total}
         active={active}
         pendingCount={pending.length}
-        newest={newest[0] ?? null}
+        scheduledToday={scheduledTodayCount}
+      />
+      <ScheduleSummary
+        weekStart={weekStart}
+        shiftCount={shifts.length}
+        totalHours={totalWeekHours}
+        todaysShifts={todaysShifts}
+        nextShift={nextShift}
       />
       <QuickActions />
       <TodaysOverview newest={newest} pending={pending} />
