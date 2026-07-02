@@ -1,10 +1,16 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
+  Loader2,
+  Lock,
+  LockOpen,
   Plus,
   UserCircle2,
 } from "lucide-react";
@@ -16,7 +22,11 @@ import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { RESTAURANT } from "@/components/layout/AppShell";
 import { positionsQueryOptions, staffQueryOptions } from "@/features/staff/queries";
-import { shiftsQueryOptions } from "@/features/schedule/queries";
+import {
+  shiftsQueryOptions,
+  weekStatusQueryOptions,
+} from "@/features/schedule/queries";
+import { publishWeek, unpublishWeek } from "@/lib/schedule/schedule.functions";
 import {
   addDays,
   formatTime,
@@ -27,6 +37,7 @@ import {
   startOfWeek,
   toISODate,
   type Shift,
+  type ScheduleWeek,
 } from "@/features/schedule/types";
 import { ShiftFormDialog } from "@/features/schedule/components/ShiftFormDialog";
 import type { StaffMember } from "@/features/staff/types";
@@ -42,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/schedule")({
       context.queryClient.ensureQueryData(staffQueryOptions),
       context.queryClient.ensureQueryData(positionsQueryOptions),
       context.queryClient.ensureQueryData(shiftsQueryOptions(weekStart, weekEnd)),
+      context.queryClient.ensureQueryData(weekStatusQueryOptions(weekStart)),
     ]);
   },
   component: SchedulePage,
@@ -69,9 +81,12 @@ function SchedulePage() {
   const staffQ = useSuspenseQuery(staffQueryOptions);
   const positionsQ = useSuspenseQuery(positionsQueryOptions);
   const shiftsQ = useSuspenseQuery(shiftsQueryOptions(weekStartISO, weekEndISO));
+  const weekStatusQ = useSuspenseQuery(weekStatusQueryOptions(weekStartISO));
 
   const employees = staffQ.data.filter((s) => s.status === "active");
   const shifts = shiftsQ.data;
+  const weekStatus = weekStatusQ.data;
+  const isPublished = weekStatus.status === "published";
 
   const [dialog, setDialog] = useState<DialogState>({ open: false });
   const [mobileView, setMobileView] = useState<"day" | "employee">("day");
@@ -118,7 +133,7 @@ function SchedulePage() {
   }, [shifts]);
 
   const openCreate = (workDate: string, employeeId?: string) => {
-    if (!isManager) return;
+    if (!isManager || isPublished) return;
     setDialog({ open: true, workDate, presetEmployeeId: employeeId ?? null });
   };
   const openEdit = (shift: Shift) => {
@@ -135,17 +150,34 @@ function SchedulePage() {
     <div className="space-y-6">
       <Header
         weekStart={weekStart}
+        weekStartISO={weekStartISO}
+        weekStatus={weekStatus}
+        isManager={isManager}
         onPrev={() => setWeekStart((d) => addDays(d, -7))}
         onNext={() => setWeekStart((d) => addDays(d, 7))}
         onToday={() => setWeekStart(startOfWeek(new Date()))}
         onAdd={
-          isManager
+          isManager && !isPublished
             ? () => openCreate(toISODate(new Date()))
             : undefined
         }
         totalHours={totalWeekHours}
         totalShifts={shifts.length}
       />
+
+      {isPublished && (
+        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-medium">This week is published.</p>
+            <p className="opacity-80">
+              The schedule is locked. Unpublish to make edits, or propose a
+              shift swap for individual changes.
+            </p>
+          </div>
+        </div>
+      )}
+
 
       {shifts.length === 0 && employees.length > 0 && isManager ? (
         <EmptyWeek onAdd={() => openCreate(toISODate(days[0]))} />
@@ -214,6 +246,9 @@ function SchedulePage() {
 
 function Header({
   weekStart,
+  weekStartISO,
+  weekStatus,
+  isManager,
   onPrev,
   onNext,
   onToday,
@@ -222,6 +257,9 @@ function Header({
   totalShifts,
 }: {
   weekStart: Date;
+  weekStartISO: string;
+  weekStatus: ScheduleWeek;
+  isManager: boolean;
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -231,18 +269,65 @@ function Header({
 }) {
   const isCurrent =
     toISODate(weekStart) === toISODate(startOfWeek(new Date()));
+  const isPublished = weekStatus.status === "published";
+  const queryClient = useQueryClient();
+  const publishFn = useServerFn(publishWeek);
+  const unpublishFn = useServerFn(unpublishWeek);
+
+  const publishM = useMutation({
+    mutationFn: () => publishFn({ data: { weekStart: weekStartISO } }),
+    onSuccess: () => {
+      toast.success("Schedule published");
+      queryClient.invalidateQueries({ queryKey: ["schedule-week", weekStartISO] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to publish"),
+  });
+  const unpublishM = useMutation({
+    mutationFn: () => unpublishFn({ data: { weekStart: weekStartISO } }),
+    onSuccess: () => {
+      toast.success("Schedule unpublished");
+      queryClient.invalidateQueries({ queryKey: ["schedule-week", weekStartISO] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to unpublish"),
+  });
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CalendarDays className="h-5 w-5 text-brand" />
           <h1 className="text-2xl font-semibold tracking-tight">
             Weekly schedule
           </h1>
+          <Badge
+            variant="outline"
+            className={cn(
+              "gap-1 capitalize",
+              isPublished
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"
+                : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100",
+            )}
+          >
+            {isPublished ? (
+              <Lock className="h-3 w-3" />
+            ) : (
+              <LockOpen className="h-3 w-3" />
+            )}
+            {weekStatus.status}
+          </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           {formatWeekRange(weekStart)} · {totalShifts} shifts ·{" "}
           {totalHours.toFixed(1)} hrs
+          {isPublished && weekStatus.published_at && (
+            <>
+              {" · published "}
+              {new Date(weekStatus.published_at).toLocaleDateString()}
+              {weekStatus.published_by_name
+                ? ` by ${weekStatus.published_by_name}`
+                : ""}
+            </>
+          )}
         </p>
       </div>
 
@@ -264,13 +349,41 @@ function Header({
           </Button>
         </div>
         {onAdd && (
-          <Button onClick={onAdd}>
+          <Button variant="outline" onClick={onAdd}>
             <Plus className="h-4 w-4" />
             Add shift
           </Button>
         )}
+        {isManager &&
+          (isPublished ? (
+            <Button
+              variant="outline"
+              onClick={() => unpublishM.mutate()}
+              disabled={unpublishM.isPending}
+            >
+              {unpublishM.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LockOpen className="h-4 w-4" />
+              )}
+              Unpublish
+            </Button>
+          ) : (
+            <Button
+              onClick={() => publishM.mutate()}
+              disabled={publishM.isPending || totalShifts === 0}
+            >
+              {publishM.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
+              Publish week
+            </Button>
+          ))}
       </div>
     </div>
+
   );
 }
 

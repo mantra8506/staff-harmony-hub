@@ -51,6 +51,7 @@ import {
 } from "@/lib/schedule/schedule.functions";
 import type { Position, StaffMember } from "@/features/staff/types";
 import type { Shift } from "@/features/schedule/types";
+import { ProposeSwapDialog } from "@/features/swaps/components/ProposeSwapDialog";
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -322,7 +323,14 @@ export function ShiftFormDialog({
             />
 
             <DialogFooter className="gap-2 sm:justify-between">
-              <div>
+              <div className="flex flex-wrap gap-2">
+                {isEdit && shift && (
+                  <ProposeSwapDialog
+                    shift={shift}
+                    employees={employees}
+                    onDone={() => onOpenChange(false)}
+                  />
+                )}
                 {isEdit && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

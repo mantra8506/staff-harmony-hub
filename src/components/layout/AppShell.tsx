@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowLeftRight,
   BarChart3,
   Bell,
   CalendarDays,
@@ -47,6 +48,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/staff", label: "Staff Directory", icon: Users },
   { to: "/schedule", label: "Scheduling", icon: CalendarDays },
+  { to: "/swaps", label: "Shift Swaps", icon: ArrowLeftRight },
   { label: "Attendance", icon: ClipboardList, soon: true },
   { label: "Announcements", icon: Megaphone, soon: true },
   { label: "Reports", icon: BarChart3, soon: true },
