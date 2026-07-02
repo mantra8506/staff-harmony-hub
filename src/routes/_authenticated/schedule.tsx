@@ -81,9 +81,12 @@ function SchedulePage() {
   const staffQ = useSuspenseQuery(staffQueryOptions);
   const positionsQ = useSuspenseQuery(positionsQueryOptions);
   const shiftsQ = useSuspenseQuery(shiftsQueryOptions(weekStartISO, weekEndISO));
+  const weekStatusQ = useSuspenseQuery(weekStatusQueryOptions(weekStartISO));
 
   const employees = staffQ.data.filter((s) => s.status === "active");
   const shifts = shiftsQ.data;
+  const weekStatus = weekStatusQ.data;
+  const isPublished = weekStatus.status === "published";
 
   const [dialog, setDialog] = useState<DialogState>({ open: false });
   const [mobileView, setMobileView] = useState<"day" | "employee">("day");
@@ -130,7 +133,7 @@ function SchedulePage() {
   }, [shifts]);
 
   const openCreate = (workDate: string, employeeId?: string) => {
-    if (!isManager) return;
+    if (!isManager || isPublished) return;
     setDialog({ open: true, workDate, presetEmployeeId: employeeId ?? null });
   };
   const openEdit = (shift: Shift) => {
@@ -147,17 +150,34 @@ function SchedulePage() {
     <div className="space-y-6">
       <Header
         weekStart={weekStart}
+        weekStartISO={weekStartISO}
+        weekStatus={weekStatus}
+        isManager={isManager}
         onPrev={() => setWeekStart((d) => addDays(d, -7))}
         onNext={() => setWeekStart((d) => addDays(d, 7))}
         onToday={() => setWeekStart(startOfWeek(new Date()))}
         onAdd={
-          isManager
+          isManager && !isPublished
             ? () => openCreate(toISODate(new Date()))
             : undefined
         }
         totalHours={totalWeekHours}
         totalShifts={shifts.length}
       />
+
+      {isPublished && (
+        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-medium">This week is published.</p>
+            <p className="opacity-80">
+              The schedule is locked. Unpublish to make edits, or propose a
+              shift swap for individual changes.
+            </p>
+          </div>
+        </div>
+      )}
+
 
       {shifts.length === 0 && employees.length > 0 && isManager ? (
         <EmptyWeek onAdd={() => openCreate(toISODate(days[0]))} />
