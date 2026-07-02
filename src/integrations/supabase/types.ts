@@ -97,6 +97,63 @@ export type Database = {
           },
         ]
       }
+      shifts: {
+        Row: {
+          break_minutes: number
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          end_time: string
+          id: string
+          notes: string | null
+          position_id: string | null
+          start_time: string
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          break_minutes?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          position_id?: string | null
+          start_time: string
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          break_minutes?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          position_id?: string | null
+          start_time?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shifts_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
