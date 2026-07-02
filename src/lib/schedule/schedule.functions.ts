@@ -1,10 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Shift } from "@/features/schedule/types";
+import type { Shift, ScheduleWeek } from "@/features/schedule/types";
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
-
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date");
 const timeSchema = z.string().regex(timeRegex, "Use HH:MM");
 
@@ -25,6 +24,7 @@ const createSchema = z.object({
 
 const updateSchema = createSchema.extend({ id: z.string().uuid() });
 const idSchema = z.object({ id: z.string().uuid() });
+const weekStartSchema = z.object({ weekStart: dateSchema });
 
 async function assertManager(context: { supabase: any; userId: string }) {
   const { data, error } = await context.supabase.rpc("has_role", {
@@ -33,6 +33,35 @@ async function assertManager(context: { supabase: any; userId: string }) {
   });
   if (error) throw new Error("Permission check failed");
   if (data !== true) throw new Error("Only managers can manage shifts.");
+}
+
+/** Compute Monday-start ISO for a given YYYY-MM-DD workDate. */
+function weekStartFor(workDate: string): string {
+  const d = new Date(`${workDate}T00:00:00`);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+async function assertWeekEditable(
+  context: { supabase: any },
+  workDate: string,
+) {
+  const wStart = weekStartFor(workDate);
+  const { data } = await context.supabase
+    .from("schedule_weeks")
+    .select("status")
+    .eq("week_start", wStart)
+    .maybeSingle();
+  if (data?.status === "published") {
+    throw new Error(
+      "This week is published and locked. Unpublish it before editing.",
+    );
+  }
 }
 
 async function mapShifts(context: { supabase: any }, rows: any[]): Promise<Shift[]> {
@@ -97,6 +126,7 @@ export const createShift = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => createSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertManager(context);
+    await assertWeekEditable(context, data.workDate);
     const { error } = await context.supabase.from("shifts").insert({
       employee_id: data.employeeId,
       work_date: data.workDate,
@@ -116,6 +146,7 @@ export const updateShift = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => updateSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertManager(context);
+    await assertWeekEditable(context, data.workDate);
     const { error } = await context.supabase
       .from("shifts")
       .update({
@@ -137,7 +168,85 @@ export const deleteShift = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => idSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertManager(context);
+    // Look up the shift's work_date to assert editability
+    const { data: existing } = await context.supabase
+      .from("shifts")
+      .select("work_date")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (existing?.work_date) await assertWeekEditable(context, existing.work_date);
     const { error } = await context.supabase.from("shifts").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/* ---------------- Publish / unpublish ---------------- */
+
+export const getWeekStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => weekStartSchema.parse(d))
+  .handler(async ({ data, context }): Promise<ScheduleWeek> => {
+    const { data: row } = await context.supabase
+      .from("schedule_weeks")
+      .select("week_start, status, published_at, published_by")
+      .eq("week_start", data.weekStart)
+      .maybeSingle();
+
+    let publisherName: string | null = null;
+    if (row?.published_by) {
+      const { data: prof } = await context.supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", row.published_by)
+        .maybeSingle();
+      publisherName = prof?.full_name ?? null;
+    }
+
+    return {
+      week_start: data.weekStart,
+      status: (row?.status as "draft" | "published") ?? "draft",
+      published_at: row?.published_at ?? null,
+      published_by: row?.published_by ?? null,
+      published_by_name: publisherName,
+    };
+  });
+
+export const publishWeek = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => weekStartSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertManager(context);
+    const { error } = await context.supabase
+      .from("schedule_weeks")
+      .upsert(
+        {
+          week_start: data.weekStart,
+          status: "published",
+          published_at: new Date().toISOString(),
+          published_by: context.userId,
+        },
+        { onConflict: "week_start" },
+      );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const unpublishWeek = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => weekStartSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertManager(context);
+    const { error } = await context.supabase
+      .from("schedule_weeks")
+      .upsert(
+        {
+          week_start: data.weekStart,
+          status: "draft",
+          published_at: null,
+          published_by: null,
+        },
+        { onConflict: "week_start" },
+      );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
