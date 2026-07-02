@@ -42,8 +42,11 @@ export type Database = {
         Row: {
           availability: Json
           created_at: string
+          employee_code: string | null
           full_name: string
           id: string
+          invite_expires_at: string | null
+          invited_at: string | null
           max_hours_per_week: number | null
           notes: string | null
           phone: string | null
@@ -55,8 +58,11 @@ export type Database = {
         Insert: {
           availability?: Json
           created_at?: string
+          employee_code?: string | null
           full_name: string
           id: string
+          invite_expires_at?: string | null
+          invited_at?: string | null
           max_hours_per_week?: number | null
           notes?: string | null
           phone?: string | null
@@ -68,8 +74,11 @@ export type Database = {
         Update: {
           availability?: Json
           created_at?: string
+          employee_code?: string | null
           full_name?: string
           id?: string
+          invite_expires_at?: string | null
+          invited_at?: string | null
           max_hours_per_week?: number | null
           notes?: string | null
           phone?: string | null
