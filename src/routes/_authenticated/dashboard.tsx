@@ -162,12 +162,12 @@ function QuickStats({
   total,
   active,
   pendingCount,
-  newest,
+  scheduledToday,
 }: {
   total: number;
   active: number;
   pendingCount: number;
-  newest: StaffMember | null;
+  scheduledToday: number;
 }) {
   const stats: {
     label: string;
@@ -191,20 +191,18 @@ function QuickStats({
       tone: "emerald",
     },
     {
+      label: "Scheduled today",
+      value: String(scheduledToday),
+      hint: scheduledToday === 0 ? "Nobody scheduled" : "On the floor today",
+      icon: CalendarDays,
+      tone: scheduledToday > 0 ? "emerald" : "muted",
+    },
+    {
       label: "Pending invitations",
       value: String(pendingCount),
       hint: pendingCount === 0 ? "You're all caught up" : "Awaiting acceptance",
       icon: Mail,
       tone: pendingCount > 0 ? "amber" : "muted",
-    },
-    {
-      label: "Newest employee",
-      value: newest?.full_name ?? "—",
-      hint: newest
-        ? `Joined ${new Date(newest.created_at).toLocaleDateString()}`
-        : "No employees yet",
-      icon: UserPlus,
-      tone: "muted",
     },
   ];
 
