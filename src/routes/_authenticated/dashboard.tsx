@@ -120,7 +120,124 @@ function DashboardPage() {
   );
 }
 
+/* ---------------- Schedule summary ---------------- */
+
+function ScheduleSummary({
+  weekStart,
+  shiftCount,
+  totalHours,
+  todaysShifts,
+  nextShift,
+}: {
+  weekStart: Date;
+  shiftCount: number;
+  totalHours: number;
+  todaysShifts: Shift[];
+  nextShift: Shift | null;
+}) {
+  const hasSchedule = shiftCount > 0;
+  return (
+    <section>
+      <SectionTitle
+        title="This week's schedule"
+        subtitle={formatWeekRange(weekStart)}
+      />
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="border-border shadow-sm lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              Today on the floor
+            </CardTitle>
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/schedule">Open schedule</Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {!hasSchedule ? (
+              <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No schedule has been created for this week.
+                </p>
+                <Button asChild size="sm">
+                  <Link to="/schedule">Create Schedule</Link>
+                </Button>
+              </div>
+            ) : todaysShifts.length === 0 ? (
+              <EmptyMini text="Nobody is scheduled today." />
+            ) : (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {todaysShifts.slice(0, 5).map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 px-3 py-2"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">
+                        {s.employee_name}
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {s.position_name ?? "No position"}
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                      {formatTime(s.start_time)} – {formatTime(s.end_time)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-border shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              Next shift
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {nextShift ? (
+              <div className="space-y-3">
+                <div>
+                  <div className="text-base font-semibold">
+                    {nextShift.employee_name}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {nextShift.position_name ?? "No position"}
+                  </div>
+                </div>
+                <div className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                  <div className="font-medium">
+                    {new Date(nextShift.work_date + "T00:00:00").toLocaleDateString(
+                      undefined,
+                      { weekday: "long", month: "short", day: "numeric" },
+                    )}
+                  </div>
+                  <div className="tabular-nums text-muted-foreground">
+                    {formatTime(nextShift.start_time)} –{" "}
+                    {formatTime(nextShift.end_time)}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <EmptyMini text="No upcoming shifts this week." />
+            )}
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
+              <span>{shiftCount} shifts</span>
+              <span className="tabular-nums">{totalHours.toFixed(1)} hrs</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- Welcome ---------------- */
+
+
 
 function greetingFor(date = new Date()) {
   const h = date.getHours();
