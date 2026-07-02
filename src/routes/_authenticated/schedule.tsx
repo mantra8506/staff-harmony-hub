@@ -1,10 +1,16 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
+  Loader2,
+  Lock,
+  LockOpen,
   Plus,
   UserCircle2,
 } from "lucide-react";
@@ -16,7 +22,11 @@ import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { RESTAURANT } from "@/components/layout/AppShell";
 import { positionsQueryOptions, staffQueryOptions } from "@/features/staff/queries";
-import { shiftsQueryOptions } from "@/features/schedule/queries";
+import {
+  shiftsQueryOptions,
+  weekStatusQueryOptions,
+} from "@/features/schedule/queries";
+import { publishWeek, unpublishWeek } from "@/lib/schedule/schedule.functions";
 import {
   addDays,
   formatTime,
@@ -27,6 +37,7 @@ import {
   startOfWeek,
   toISODate,
   type Shift,
+  type ScheduleWeek,
 } from "@/features/schedule/types";
 import { ShiftFormDialog } from "@/features/schedule/components/ShiftFormDialog";
 import type { StaffMember } from "@/features/staff/types";
@@ -42,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/schedule")({
       context.queryClient.ensureQueryData(staffQueryOptions),
       context.queryClient.ensureQueryData(positionsQueryOptions),
       context.queryClient.ensureQueryData(shiftsQueryOptions(weekStart, weekEnd)),
+      context.queryClient.ensureQueryData(weekStatusQueryOptions(weekStart)),
     ]);
   },
   component: SchedulePage,
