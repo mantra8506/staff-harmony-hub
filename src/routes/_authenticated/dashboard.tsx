@@ -1,15 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BarChart3,
   CalendarDays,
   CalendarPlus,
   ClipboardList,
-  Clock,
   Inbox,
   LucideIcon,
+  Mail,
   Megaphone,
-  Plus,
   Repeat,
   Sparkles,
   UserPlus,
@@ -21,9 +21,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { RESTAURANT } from "@/components/layout/AppShell";
+import { staffQueryOptions } from "@/features/staff/queries";
+import type { StaffMember } from "@/features/staff/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: `Dashboard — ${RESTAURANT.name}` }] }),
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData(staffQueryOptions);
+  },
   component: DashboardPage,
 });
 
@@ -35,12 +40,29 @@ function DashboardPage() {
     user?.email?.split("@")[0] ??
     "Manager";
 
+  const staffQ = useSuspenseQuery(staffQueryOptions);
+  const staff = staffQ.data;
+
+  const total = staff.length;
+  const active = staff.filter((m) => m.status === "active").length;
+  const pending = staff.filter(
+    (m) => m.invite_status === "pending" || m.invite_status === "expired",
+  );
+  const newest = [...staff]
+    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+    .slice(0, 3);
+
   return (
     <div className="space-y-10">
       <Welcome name={displayName} role={isManager ? "Manager" : "Staff"} />
-      <QuickStats />
+      <QuickStats
+        total={total}
+        active={active}
+        pendingCount={pending.length}
+        newest={newest[0] ?? null}
+      />
       <QuickActions />
-      <TodaysOverview />
+      <TodaysOverview newest={newest} pending={pending} />
       <ModuleGrid />
     </div>
   );
@@ -61,7 +83,6 @@ function Welcome({ name, role }: { name: string; role: string }) {
     month: "long",
     day: "numeric",
   });
-
   return (
     <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
       <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l from-brand/5 to-transparent md:block" />
@@ -70,9 +91,7 @@ function Welcome({ name, role }: { name: string; role: string }) {
           {greetingFor()}
         </p>
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {name}
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1>
           <p className="text-sm text-muted-foreground">
             {role} · {RESTAURANT.name} · {today}
           </p>
@@ -87,43 +106,79 @@ function Welcome({ name, role }: { name: string; role: string }) {
 
 /* ---------------- Quick Stats ---------------- */
 
-type Stat = {
-  label: string;
-  value: string;
-  hint: string;
-  icon: LucideIcon;
-  tone: "brand" | "emerald" | "muted";
-};
+function QuickStats({
+  total,
+  active,
+  pendingCount,
+  newest,
+}: {
+  total: number;
+  active: number;
+  pendingCount: number;
+  newest: StaffMember | null;
+}) {
+  const stats: {
+    label: string;
+    value: string;
+    hint: string;
+    icon: LucideIcon;
+    tone: "brand" | "emerald" | "muted" | "amber";
+  }[] = [
+    {
+      label: "Total employees",
+      value: String(total),
+      hint: total === 0 ? "Add your first employee" : "Across all positions",
+      icon: Users,
+      tone: "brand",
+    },
+    {
+      label: "Active employees",
+      value: String(active),
+      hint: total === 0 ? "—" : `${total - active} inactive`,
+      icon: Sparkles,
+      tone: "emerald",
+    },
+    {
+      label: "Pending invitations",
+      value: String(pendingCount),
+      hint: pendingCount === 0 ? "You're all caught up" : "Awaiting acceptance",
+      icon: Mail,
+      tone: pendingCount > 0 ? "amber" : "muted",
+    },
+    {
+      label: "Newest employee",
+      value: newest?.full_name ?? "—",
+      hint: newest
+        ? `Joined ${new Date(newest.created_at).toLocaleDateString()}`
+        : "No employees yet",
+      icon: UserPlus,
+      tone: "muted",
+    },
+  ];
 
-const STATS: Stat[] = [
-  { label: "Total Staff", value: "—", hint: "Across all positions", icon: Users, tone: "brand" },
-  { label: "Today's Staff", value: "—", hint: "Scheduled to work today", icon: Clock, tone: "emerald" },
-  { label: "Pending Requests", value: "—", hint: "Swaps & time off", icon: Inbox, tone: "muted" },
-  { label: "Upcoming Shifts", value: "—", hint: "In the next 7 days", icon: CalendarDays, tone: "muted" },
-];
-
-function QuickStats() {
   return (
     <section>
       <SectionTitle title="At a glance" />
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {STATS.map((s) => (
+        {stats.map((s) => (
           <Card key={s.label} className="border-border shadow-sm">
             <CardContent className="flex items-start justify-between gap-3 p-5">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   {s.label}
                 </p>
-                <p className="mt-2 text-3xl font-semibold tracking-tight">
+                <p className="mt-2 truncate text-2xl font-semibold tracking-tight sm:text-3xl">
                   {s.value}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">{s.hint}</p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">{s.hint}</p>
               </div>
               <span
                 className={cn(
                   "grid h-10 w-10 shrink-0 place-items-center rounded-lg",
                   s.tone === "brand" && "bg-brand/10 text-brand",
                   s.tone === "emerald" && "bg-accent-emerald/10 text-accent-emerald",
+                  s.tone === "amber" &&
+                    "bg-amber-500/10 text-amber-600 dark:text-amber-400",
                   s.tone === "muted" && "bg-muted text-muted-foreground",
                 )}
               >
@@ -150,42 +205,38 @@ type Action = {
 
 const ACTIONS: Action[] = [
   {
-    title: "Add Staff",
+    title: "Add employee",
     body: "Create a new employee profile with position and availability.",
     icon: UserPlus,
     to: "/staff",
-    cta: "Add staff",
+    cta: "Add employee",
     primary: true,
   },
   {
-    title: "Invite Employee",
-    body: "Send an invitation so they can access their schedule.",
-    icon: Sparkles,
+    title: "View directory",
+    body: "Browse everyone on the team, positions, and status.",
+    icon: Users,
     to: "/staff",
-    cta: "Send invite",
+    cta: "Open directory",
   },
   {
-    title: "Create Schedule",
+    title: "Create schedule",
     body: "Build this week's schedule and publish it to the team.",
     icon: CalendarPlus,
     cta: "Coming soon",
   },
   {
-    title: "View Staff Directory",
-    body: "Browse everyone on the team, positions, and status.",
-    icon: Users,
-    to: "/staff",
-    cta: "Open directory",
+    title: "Announcements",
+    body: "Broadcast updates to the whole team.",
+    icon: Megaphone,
+    cta: "Coming soon",
   },
 ];
 
 function QuickActions() {
   return (
     <section>
-      <SectionTitle
-        title="Quick actions"
-        subtitle="Jump into the tasks you use most."
-      />
+      <SectionTitle title="Quick actions" subtitle="Jump into the tasks you use most." />
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {ACTIONS.map((a) => (
           <ActionCard key={a.title} action={a} />
@@ -243,95 +294,121 @@ function ActionCard({ action }: { action: Action }) {
       </span>
     </div>
   );
-  if (action.to) {
-    return <Link to={action.to}>{Body}</Link>;
-  }
+  if (action.to) return <Link to={action.to}>{Body}</Link>;
   return Body;
 }
 
 /* ---------------- Today's Overview ---------------- */
 
-function TodaysOverview() {
+function TodaysOverview({
+  newest,
+  pending,
+}: {
+  newest: StaffMember[];
+  pending: StaffMember[];
+}) {
   return (
     <section>
       <SectionTitle
         title="Today's overview"
         subtitle="A snapshot of what's happening on the floor."
       />
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <OverviewCard
-          title="Today's Team"
-          icon={Users}
-          empty="No one is scheduled yet."
-          action={{ label: "Build schedule", to: null }}
-        />
-        <OverviewCard
-          title="Current Shift"
-          icon={Clock}
-          empty="No active shift right now."
-        />
-        <OverviewCard
-          title="Upcoming Shift"
-          icon={CalendarDays}
-          empty="Nothing on the schedule."
-        />
-        <OverviewCard
-          title="Pending Invitations"
-          icon={Inbox}
-          empty="No pending invitations."
-          action={{ label: "Invite employee", to: "/staff" }}
-        />
-        <OverviewCard
-          title="Recent Activity"
-          icon={Sparkles}
-          empty="Activity will appear here as your team uses the app."
-          className="lg:col-span-2"
-        />
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <Inbox className="h-4 w-4 text-muted-foreground" />
+              Pending invitations
+            </CardTitle>
+            {pending.length > 0 && (
+              <Button asChild size="sm" variant="ghost">
+                <Link to="/staff">Manage</Link>
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent className="pt-0">
+            {pending.length === 0 ? (
+              <EmptyMini text="No pending invitations." />
+            ) : (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {pending.slice(0, 5).map((m) => (
+                  <li key={m.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                    <Link
+                      to="/staff/$userId"
+                      params={{ userId: m.id }}
+                      className="min-w-0 flex-1"
+                    >
+                      <div className="truncate text-sm font-medium">{m.full_name}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {m.email ?? "No email"}
+                      </div>
+                    </Link>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                        m.invite_status === "expired"
+                          ? "bg-destructive/10 text-destructive"
+                          : "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                      )}
+                    >
+                      {m.invite_status === "expired" ? "Expired" : "Pending"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-border shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <Sparkles className="h-4 w-4 text-muted-foreground" />
+              Recent activity
+            </CardTitle>
+            {newest.length > 0 && (
+              <Button asChild size="sm" variant="ghost">
+                <Link to="/staff">View all</Link>
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent className="pt-0">
+            {newest.length === 0 ? (
+              <EmptyMini text="Activity will appear here as your team uses the app." />
+            ) : (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {newest.map((m) => (
+                  <li key={m.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                    <Link
+                      to="/staff/$userId"
+                      params={{ userId: m.id }}
+                      className="min-w-0 flex-1"
+                    >
+                      <div className="truncate text-sm font-medium">{m.full_name}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {m.primary_position_name ?? "No position"} · added{" "}
+                        {new Date(m.created_at).toLocaleDateString()}
+                      </div>
+                    </Link>
+                    <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                      {m.employee_code ?? "—"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </section>
   );
 }
 
-function OverviewCard({
-  title,
-  icon: Icon,
-  empty,
-  action,
-  className,
-}: {
-  title: string;
-  icon: LucideIcon;
-  empty: string;
-  action?: { label: string; to: string | null };
-  className?: string;
-}) {
+function EmptyMini({ text }: { text: string }) {
   return (
-    <Card className={cn("border-border shadow-sm", className)}>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex min-h-[120px] flex-col items-start justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-center sm:items-center">
-          <p className="text-sm text-muted-foreground">{empty}</p>
-          {action &&
-            (action.to ? (
-              <Button asChild size="sm" variant="outline">
-                <Link to={action.to}>
-                  <Plus className="h-4 w-4" />
-                  {action.label}
-                </Link>
-              </Button>
-            ) : (
-              <Button size="sm" variant="outline" disabled>
-                {action.label}
-              </Button>
-            ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex min-h-[120px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-4">
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
   );
 }
 
@@ -408,9 +485,7 @@ function ModuleGrid() {
                 <span
                   className={cn(
                     "grid h-10 w-10 place-items-center rounded-lg",
-                    isLive
-                      ? "bg-brand/10 text-brand"
-                      : "bg-muted text-muted-foreground",
+                    isLive ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
                   )}
                 >
                   <m.icon className="h-5 w-5" />
@@ -461,13 +536,7 @@ function ModuleGrid() {
 
 /* ---------------- Shared ---------------- */
 
-function SectionTitle({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle?: string;
-}) {
+function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="flex flex-col gap-1">
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
