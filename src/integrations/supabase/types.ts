@@ -97,6 +97,86 @@ export type Database = {
           },
         ]
       }
+      schedule_weeks: {
+        Row: {
+          created_at: string
+          published_at: string | null
+          published_by: string | null
+          status: Database["public"]["Enums"]["schedule_status"]
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      shift_swap_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          from_employee_id: string
+          id: string
+          proposed_by: string
+          reason: string | null
+          shift_id: string
+          status: Database["public"]["Enums"]["swap_status"]
+          to_employee_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          from_employee_id: string
+          id?: string
+          proposed_by: string
+          reason?: string | null
+          shift_id: string
+          status?: Database["public"]["Enums"]["swap_status"]
+          to_employee_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          from_employee_id?: string
+          id?: string
+          proposed_by?: string
+          reason?: string | null
+          shift_id?: string
+          status?: Database["public"]["Enums"]["swap_status"]
+          to_employee_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swap_requests_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shifts: {
         Row: {
           break_minutes: number
@@ -191,7 +271,9 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "shift_lead" | "staff"
+      schedule_status: "draft" | "published"
       staff_status: "active" | "inactive"
+      swap_status: "pending" | "approved" | "rejected" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -320,7 +402,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "shift_lead", "staff"],
+      schedule_status: ["draft", "published"],
       staff_status: ["active", "inactive"],
+      swap_status: ["pending", "approved", "rejected", "cancelled"],
     },
   },
 } as const
