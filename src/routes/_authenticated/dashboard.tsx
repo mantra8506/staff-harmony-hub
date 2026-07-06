@@ -27,7 +27,7 @@ import { shiftsQueryOptions } from "@/features/schedule/queries";
 import {
   addDays,
   formatTime,
-  formatWeekRange,
+  // formatWeekRange no longer used after schedule card simplification
   shiftHours,
   startOfWeek,
   toISODate,
