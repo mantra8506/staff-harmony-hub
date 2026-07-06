@@ -8,7 +8,7 @@ import { RESTAURANT } from "@/components/layout/AppShell";
 import { staffQueryOptions } from "@/features/staff/queries";
 import { attendanceRangeQueryOptions } from "@/features/operations/queries";
 import { cn } from "@/lib/utils";
-import type { AttendanceRow } from "@/lib/attendance/attendance.functions";
+
 
 function todayISO(): string {
   const d = new Date();
@@ -240,6 +240,3 @@ function StatCard({
     </Card>
   );
 }
-
-// silence unused import warning in some configs
-void AttendanceRow;
