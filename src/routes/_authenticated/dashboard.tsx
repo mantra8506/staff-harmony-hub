@@ -364,7 +364,8 @@ const ACTIONS: Action[] = [
     title: "Announcements",
     body: "Broadcast updates to the whole team.",
     icon: Megaphone,
-    cta: "Coming soon",
+    to: "/announcements",
+    cta: "Post announcement",
   },
 ];
 
