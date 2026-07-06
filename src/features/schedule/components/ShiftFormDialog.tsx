@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -51,24 +50,16 @@ import {
 } from "@/lib/schedule/schedule.functions";
 import type { Position, StaffMember } from "@/features/staff/types";
 import type { Shift } from "@/features/schedule/types";
-import { ProposeSwapDialog } from "@/features/swaps/components/ProposeSwapDialog";
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-const schema = z
-  .object({
-    employeeId: z.string().uuid("Select an employee"),
-    workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    startTime: z.string().regex(timeRegex, "Use HH:MM"),
-    endTime: z.string().regex(timeRegex, "Use HH:MM"),
-    positionId: z.string().uuid().nullable(),
-    breakMinutes: z.number().int().min(0).max(480),
-    notes: z.string().trim().max(500).nullable(),
-  })
-  .refine((v) => v.startTime !== v.endTime, {
-    path: ["endTime"],
-    message: "End time cannot equal start time",
-  });
+const schema = z.object({
+  employeeId: z.string().uuid("Select an employee"),
+  workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Select a day"),
+  startTime: z.string().regex(timeRegex, "Required"),
+  endTime: z.string().regex(timeRegex, "Required"),
+  positionId: z.string().uuid().nullable(),
+});
 
 type FormValues = z.infer<typeof schema>;
 
@@ -76,6 +67,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   workDate: string;
+  weekDays: { iso: string; label: string }[];
   employees: StaffMember[];
   positions: Position[];
   shift?: Shift | null;
@@ -87,6 +79,7 @@ export function ShiftFormDialog({
   open,
   onOpenChange,
   workDate,
+  weekDays,
   employees,
   positions,
   shift,
@@ -107,11 +100,7 @@ export function ShiftFormDialog({
       startTime: shift?.start_time ?? "16:00",
       endTime: shift?.end_time ?? "22:00",
       positionId:
-        shift?.position_id ??
-        defaultEmployeeObj?.primary_position_id ??
-        null,
-      breakMinutes: shift?.break_minutes ?? 0,
-      notes: shift?.notes ?? null,
+        shift?.position_id ?? defaultEmployeeObj?.primary_position_id ?? null,
     },
   });
 
@@ -126,8 +115,6 @@ export function ShiftFormDialog({
       endTime: shift?.end_time ?? "22:00",
       positionId:
         shift?.position_id ?? empObj?.primary_position_id ?? null,
-      breakMinutes: shift?.break_minutes ?? 0,
-      notes: shift?.notes ?? null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, shift?.id, workDate, presetEmployeeId]);
@@ -141,10 +128,11 @@ export function ShiftFormDialog({
 
   const saveM = useMutation({
     mutationFn: async (values: FormValues) => {
+      const payload = { ...values, breakMinutes: 0, notes: null };
       if (isEdit && shift) {
-        return updateFn({ data: { id: shift.id, ...values } });
+        return updateFn({ data: { id: shift.id, ...payload } });
       }
-      return createFn({ data: values });
+      return createFn({ data: payload });
     },
     onSuccess: () => {
       toast.success(isEdit ? "Shift updated" : "Shift added");
@@ -175,11 +163,7 @@ export function ShiftFormDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit shift" : "Add shift"}</DialogTitle>
           <DialogDescription>
-            {new Date(workDate + "T00:00:00").toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
+            Fill in the basics — employee, day, times, and position.
           </DialogDescription>
         </DialogHeader>
 
@@ -216,6 +200,31 @@ export function ShiftFormDialog({
                           {e.primary_position_name
                             ? ` · ${e.primary_position_name}`
                             : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Day</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select day" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {weekDays.map((d) => (
+                        <SelectItem key={d.iso} value={d.iso}>
+                          {d.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -283,54 +292,8 @@ export function ShiftFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="breakMinutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Break (minutes)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={480}
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes (optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={2}
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value || null)}
-                      placeholder="Section, tasks, or reminders…"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <DialogFooter className="gap-2 sm:justify-between">
-              <div className="flex flex-wrap gap-2">
-                {isEdit && shift && (
-                  <ProposeSwapDialog
-                    shift={shift}
-                    employees={employees}
-                    onDone={() => onOpenChange(false)}
-                  />
-                )}
+              <div>
                 {isEdit && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -343,8 +306,7 @@ export function ShiftFormDialog({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete this shift?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will remove the shift from the schedule. This action
-                          cannot be undone.
+                          This removes the shift from the schedule.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -353,7 +315,7 @@ export function ShiftFormDialog({
                           onClick={() => deleteM.mutate()}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          Delete shift
+                          Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -370,7 +332,7 @@ export function ShiftFormDialog({
                 </Button>
                 <Button type="submit" disabled={saveM.isPending}>
                   {saveM.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isEdit ? "Save changes" : "Add shift"}
+                  {isEdit ? "Save" : "Add shift"}
                 </Button>
               </div>
             </DialogFooter>

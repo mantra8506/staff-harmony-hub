@@ -48,7 +48,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/staff", label: "Staff Directory", icon: Users },
   { to: "/schedule", label: "Scheduling", icon: CalendarDays },
-  { to: "/swaps", label: "Shift Swaps", icon: ArrowLeftRight },
+  { label: "Shift Swaps", icon: ArrowLeftRight, soon: true },
   { label: "Attendance", icon: ClipboardList, soon: true },
   { label: "Announcements", icon: Megaphone, soon: true },
   { label: "Reports", icon: BarChart3, soon: true },
