@@ -160,8 +160,31 @@ function SchedulePage() {
         </div>
       </div>
 
+      {shifts.length === 0 && isManager && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-brand/10 text-brand">
+              <CalendarDays className="h-6 w-6" />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold">
+                No schedule has been created yet.
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Add your first shift to start building this week's schedule.
+              </p>
+            </div>
+            <Button onClick={() => openCreate(toISODate(days[0]))}>
+              <Plus className="h-4 w-4" />
+              Create First Shift
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Desktop 7-day grid */}
       <div className="hidden md:block">
+
         <div className="grid grid-cols-7 gap-3">
           {days.map((d, i) => {
             const iso = toISODate(d);
