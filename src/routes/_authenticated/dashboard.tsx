@@ -364,7 +364,8 @@ const ACTIONS: Action[] = [
     title: "Announcements",
     body: "Broadcast updates to the whole team.",
     icon: Megaphone,
-    cta: "Coming soon",
+    to: "/announcements",
+    cta: "Post announcement",
   },
 ];
 
@@ -574,27 +575,31 @@ const MODULES: Module[] = [
   },
   {
     title: "Attendance",
-    description: "Clock-ins, no-shows, and hours worked.",
+    description: "Clock in, clock out, and see today's floor.",
     icon: ClipboardList,
-    status: "soon",
+    to: "/attendance",
+    status: "live",
   },
   {
     title: "Shift Swaps",
-    description: "Approve trades between staff in one tap.",
+    description: "Quickly reassign a scheduled shift.",
     icon: Repeat,
-    status: "soon",
+    to: "/swaps",
+    status: "live",
   },
   {
     title: "Announcements",
-    description: "Broadcast updates to the whole team.",
+    description: "Share updates and events with the team.",
     icon: Megaphone,
-    status: "soon",
+    to: "/announcements",
+    status: "live",
   },
   {
     title: "Reports",
-    description: "Labor cost, hours, and staffing trends.",
+    description: "Attendance summary and hours worked.",
     icon: BarChart3,
-    status: "soon",
+    to: "/reports",
+    status: "live",
   },
 ];
 

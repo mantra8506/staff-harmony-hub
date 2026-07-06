@@ -48,10 +48,10 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/staff", label: "Staff Directory", icon: Users },
   { to: "/schedule", label: "Scheduling", icon: CalendarDays },
-  { label: "Shift Swaps", icon: ArrowLeftRight, soon: true },
-  { label: "Attendance", icon: ClipboardList, soon: true },
-  { label: "Announcements", icon: Megaphone, soon: true },
-  { label: "Reports", icon: BarChart3, soon: true },
+  { to: "/attendance", label: "Attendance", icon: ClipboardList },
+  { to: "/swaps", label: "Shift Swaps", icon: ArrowLeftRight },
+  { to: "/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/reports", label: "Reports", icon: BarChart3 },
   { label: "Settings", icon: Settings, soon: true },
 ];
 
