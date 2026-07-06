@@ -355,9 +355,10 @@ const ACTIONS: Action[] = [
   },
   {
     title: "Create schedule",
-    body: "Build this week's schedule and publish it to the team.",
+    body: "Build and manage your restaurant's weekly staff schedule.",
     icon: CalendarPlus,
-    cta: "Coming soon",
+    to: "/schedule",
+    cta: "Open Schedule",
   },
   {
     title: "Announcements",
