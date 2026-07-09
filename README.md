@@ -1,24 +1,25 @@
-# Restaurant Staff Management System
+# Staff Harmony Hub — Restaurant Staff Management System
 
-A mobile-first staff management platform for small-to-mid sized restaurants. Built to help managers handle their team — directory, scheduling, attendance, and communication — without enterprise-grade complexity.
+A mobile-first staff management platform for small-to-mid sized restaurants. Built for **Station 31 Restaurant & Bar** as the pilot deployment, it helps managers run their team — directory, scheduling, attendance, announcements, and reporting — without enterprise-grade complexity.
 
-> **Status:** Phase 3 in progress — Foundation + Staff Directory. Scheduling, attendance, payroll, and communications are planned for later phases.
+> **Status:** Prototype complete — Manager Portal is live end-to-end. Dedicated Staff Portal, payroll, and multi-restaurant support are on the roadmap.
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Tech Stack](#tech-stack)
-3. [Project Structure](#project-structure)
-4. [Getting Started](#getting-started)
-5. [Environment Variables](#environment-variables)
-6. [Authentication Model](#authentication-model)
-7. [Database & Permissions](#database--permissions)
-8. [Development Standards](#development-standards)
-9. [Roadmap](#roadmap)
-10. [Risks & Things to Avoid](#risks--things-to-avoid)
-11. [Contributing](#contributing)
+2. [Documentation](#documentation)
+3. [Tech Stack](#tech-stack)
+4. [Feature Modules](#feature-modules)
+5. [Project Structure](#project-structure)
+6. [Getting Started](#getting-started)
+7. [Environment Variables](#environment-variables)
+8. [Authentication & Roles](#authentication--roles)
+9. [Database & Permissions](#database--permissions)
+10. [Development Standards](#development-standards)
+11. [Roadmap](#roadmap)
+12. [Contributing](#contributing)
 
 ---
 
@@ -30,13 +31,30 @@ This project is being built in **deliberate, professional phases** rather than r
 |---|---|---|
 | 1 | Product discovery & requirements | Complete |
 | 2 | Development foundation (structure, stack, standards) | Complete |
-| 3 | **Staff Directory + Auth** | **In progress** |
-| 4 | Scheduling | Planned |
-| 5 | Attendance & time tracking | Planned |
-| 6 | Notifications & communication | Planned |
-| 7 | Multi-restaurant support | Future |
+| 3 | Staff Directory + Auth | Complete |
+| 4 | Weekly Schedule (prototype) | Complete |
+| 5 | Attendance, Announcements, Reports, Reassignment | Complete |
+| 6 | Dedicated Staff Portal (self-service) | Planned |
+| 7 | Payroll export, multi-restaurant support | Future |
 
-The full Phase 2 planning doc lives in [`.lovable/plan.md`](./.lovable/plan.md).
+Full planning history lives in [`.lovable/plan.md`](./.lovable/plan.md).
+
+---
+
+## Documentation
+
+Complete project documentation lives in [`docs/`](./docs):
+
+| # | Document | What's inside |
+|---|---|---|
+| 01 | [Product Requirements (PRD)](./docs/01-PRD.md) | Vision, goals, personas, functional & non-functional requirements, scope, metrics, roadmap |
+| 02 | [Technical Requirements (TRD)](./docs/02-TRD.md) | Architecture, stack, data model, three-tier permission model, module server-function contracts |
+| 03 | [API / Server Function Reference](./docs/03-API.md) | Every `createServerFn` — inputs (Zod), auth level, behavior, return shape, errors |
+| 04 | [Data Model & RLS Reference](./docs/04-DATABASE.md) | Enums, tables, grants, verified RLS policies, security-definer functions, JSON shapes |
+| 05 | [Manager User Guide](./docs/05-USER-GUIDE.md) | End-to-end walkthrough of every module in the Manager Portal, best practices, troubleshooting |
+| 06 | [Developer Setup & Contribution Guide](./docs/06-DEV-SETUP.md) | Local setup, project layout, add-a-feature walkthrough, coding standards, verification checklist |
+
+Start with the PRD for product context, the TRD for architecture, and the Dev Setup guide if you're contributing code.
 
 ---
 
@@ -51,9 +69,25 @@ The full Phase 2 planning doc lives in [`.lovable/plan.md`](./.lovable/plan.md).
 | **shadcn/ui + Radix** | Accessible UI primitives |
 | **TanStack Query** | Server state, caching, loaders |
 | **TanStack Router** | Type-safe routing |
-| **Lovable Cloud** (Supabase) | Database, Auth, Storage, server functions |
+| **Lovable Cloud** | Database, Auth, Storage, server functions |
 | **Zod** | Schema validation (client + server) |
 | **Sonner** | Toast notifications |
+
+---
+
+## Feature Modules
+
+Live in the Manager Portal today:
+
+- **Dashboard** — time-aware greeting, real-time metrics (total staff, on-shift today, pending invites), quick actions, module status grid.
+- **Staff Directory** — 4-step invite wizard, auto-generated employee codes (S001…), positions, availability by shift (morning/afternoon/evening), max weekly hours, active/inactive status with auth sync, resend/cancel invites.
+- **Weekly Schedule** — 7-day grid (desktop) / single-day view (mobile), create-edit-delete shifts, position-based colors, empty state onboarding.
+- **Attendance** — clock in/out for the current user; managers can clock in others; "today on the floor" metrics on dashboard.
+- **Announcements** — manager CRUD, staff read; dated posts surfaced on dashboard.
+- **Shift Reassignment** — manager-only tool to reassign an existing shift to another employee (simplified swap flow).
+- **Reports** — 30-day summary cards (total hours, attendance %) and per-employee breakdown table.
+
+See the [Manager User Guide](./docs/05-USER-GUIDE.md) for detailed walkthroughs.
 
 ---
 
@@ -70,27 +104,32 @@ src/
     setup.tsx                   # First-manager bootstrap (/setup)
     _authenticated/             # Pathless layout — auth gate
       route.tsx                 # Redirects unauthenticated users to /auth
-      dashboard.tsx             # /dashboard
-      staff.tsx                 # /staff
+      dashboard.tsx
+      staff.tsx
+      staff.$userId.tsx
+      schedule.tsx
+      attendance.tsx
+      announcements.tsx
+      swaps.tsx
+      reports.tsx
   features/
     staff/                      # Staff Directory feature
-      components/
-      queries.ts
-      types.ts
+    schedule/                   # Weekly Schedule feature
   components/
     ui/                         # shadcn primitives
-    layout/                     # AppShell, navigation
-  hooks/                        # Cross-feature hooks
+    layout/                     # AppShell, sidebar, mobile nav
   lib/
-    auth/
-      bootstrap.functions.ts    # First-manager creation
-    staff/
-      staff.functions.ts        # Staff CRUD server functions
+    auth/                       # Bootstrap server fns
+    staff/                      # Staff CRUD server fns
+    schedule/                   # Schedule server fns
+    attendance/                 # Attendance server fns
+    announcements/              # Announcements server fns
   integrations/
     supabase/                   # Auto-generated client + auth middleware
   styles.css
 supabase/
   migrations/                   # SQL migrations (timestamped)
+docs/                           # Project documentation (PRD, TRD, API, DB, guides)
 ```
 
 **Rule:** route files stay thin — data loading + composing feature components. No business logic in routes.
@@ -121,6 +160,8 @@ The dev server runs on `http://localhost:8080`.
 
 Staff accounts are **invite-only** — there is no public sign-up.
 
+Full local-dev walkthrough in the [Developer Setup Guide](./docs/06-DEV-SETUP.md).
+
 ---
 
 ## Environment Variables
@@ -137,7 +178,7 @@ Secrets used inside server functions only — never read at module scope, never 
 
 ---
 
-## Authentication Model
+## Authentication & Roles
 
 - **Provider:** Lovable Cloud Auth (email + password).
 - **First manager:** created via the `/setup` bootstrap flow (locks after one exists).
@@ -145,31 +186,28 @@ Secrets used inside server functions only — never read at module scope, never 
 - **Sessions:** JWT, SSR-safe via the project's auth middleware.
 - **Roles:** stored in a separate `user_roles` table (never on `profiles`) and checked through a security-definer `has_role()` function — prevents recursive RLS and privilege-escalation bugs.
 
-Three roles: `manager`, `shift_lead` (future), `staff`.
+Two active roles today: `manager`, `staff`. `shift_lead` is reserved.
 
 Permissions are enforced at three layers:
 1. **UI** — hide actions the user cannot perform.
 2. **Server functions** — `requireSupabaseAuth` + `has_role()` checks.
 3. **Database** — explicit RLS policies and explicit `GRANT`s on every public table.
 
+Full model in the [TRD](./docs/02-TRD.md) and [Database Reference](./docs/04-DATABASE.md).
+
 ---
 
 ## Database & Permissions
 
-Phase 3 schema:
-
-- `app_role` enum: `manager | shift_lead | staff`
-- `positions` — restaurant positions (server, bartender, etc.)
-- `profiles` — per-user profile data (full name, phone, primary position)
-- `user_roles` — `(user_id, role)` pairs, the **only** source of truth for roles
+Core tables: `positions`, `profiles`, `user_roles`, `shifts`, `attendance`, `announcements`.
 
 Conventions:
 
 - All `public` tables have `GRANT` statements in the same migration that creates them.
 - All `public` tables enable RLS and ship with explicit policies.
-- Privileged mutations (invites, deletions) flow through server functions using the admin client — never from the browser.
+- Privileged mutations (invites, deletions, reassignments) flow through server functions using the admin client — never from the browser.
 
-Migrations live in [`supabase/migrations/`](./supabase/migrations) and are timestamped.
+Migrations live in [`supabase/migrations/`](./supabase/migrations) and are timestamped. Every table, policy, grant, and security-definer function is documented in [`docs/04-DATABASE.md`](./docs/04-DATABASE.md).
 
 ---
 
@@ -188,7 +226,7 @@ Migrations live in [`supabase/migrations/`](./supabase/migrations) and are times
 | Mobile | Design and test at 360–414px first |
 | Types | No `any` — use `unknown` and narrow |
 
-Full standards in [`.lovable/plan.md`](./.lovable/plan.md).
+Full contribution workflow in [`docs/06-DEV-SETUP.md`](./docs/06-DEV-SETUP.md).
 
 ---
 
@@ -196,24 +234,19 @@ Full standards in [`.lovable/plan.md`](./.lovable/plan.md).
 
 - [x] Project foundation (structure, stack, standards)
 - [x] Auth shell (bootstrap + invite-only)
-- [x] Staff Directory (CRUD, roles, positions)
-- [ ] Scheduling (shift assignments, publishing, swap requests)
-- [ ] Attendance (clock in/out, late tracking)
-- [ ] In-app notification center
-- [ ] Email notifications for key events
+- [x] Staff Directory (CRUD, roles, positions, availability)
+- [x] Weekly Schedule (prototype)
+- [x] Attendance (clock in/out)
+- [x] Announcements
+- [x] Shift Reassignment
+- [x] Reports (30-day summaries)
+- [ ] Dedicated Staff Portal (self-service schedule + availability)
+- [ ] Shift swap requests with approvals
+- [ ] Draft-to-publish schedule workflow
+- [ ] Payroll export
+- [ ] In-app + email notifications
 - [ ] PWA / push notifications
 - [ ] Multi-restaurant support
-
----
-
-## Risks & Things to Avoid
-
-- **Premature multi-tenant modeling** — single-restaurant for MVP; design API surfaces so `restaurant_id` can be added later without UI churn.
-- **Storing roles on the profile table** — security risk; forbidden. Roles live in `user_roles`.
-- **Recursive RLS** — always use the `has_role()` security-definer function in policies.
-- **Skipping mobile testing** — staff are 100% on phones.
-- **Notification overload** — defaulting every event to email trains staff to ignore them.
-- **Business logic in route files** — keep routes thin.
 
 ---
 
@@ -228,6 +261,8 @@ When editing locally:
 3. Add a migration for every schema change, with `GRANT`s and RLS policies in the same file.
 4. Validate at the boundary with Zod.
 5. Run `bun run dev` and verify the change in the browser before pushing.
+
+See [`docs/06-DEV-SETUP.md`](./docs/06-DEV-SETUP.md) for the full contributor workflow.
 
 ---
 
