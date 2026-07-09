@@ -8,6 +8,24 @@
 
 ---
 
+## Table of Contents
+
+- [1. Overview](#1-overview)
+- [2. Prerequisites](#2-prerequisites)
+- [3. Working in Lovable (Recommended)](#3-working-in-lovable-recommended)
+- [4. Working Locally via GitHub Sync](#4-working-locally-via-github-sync)
+- [5. Environment Variables](#5-environment-variables)
+- [6. Project Layout](#6-project-layout)
+- [7. Common Scripts](#7-common-scripts)
+- [8. Adding a Feature (End-to-End)](#8-adding-a-feature-end-to-end)
+- [9. Coding Standards](#9-coding-standards)
+- [10. Security Rules](#10-security-rules)
+- [11. Verification Before Publishing](#11-verification-before-publishing)
+- [12. Documentation](#12-documentation)
+- [13. Getting Help](#13-getting-help)
+
+---
+
 ## 1. Overview
 
 Staff Harmony Hub is a **TanStack Start** (React 19, Vite 7) application backed by **Lovable Cloud** (managed Supabase). This guide covers how to run the project, how the code is laid out, the workflows for adding features and schema changes, coding standards, and how to open a change for review.

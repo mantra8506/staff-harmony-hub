@@ -7,6 +7,23 @@
 
 ---
 
+## Table of Contents
+
+- [1. Overview](#1-overview)
+- [2. Auth / Bootstrap](#2-auth-bootstrap)
+- [3. Staff Directory](#3-staff-directory)
+- [4. Schedule](#4-schedule)
+- [5. Attendance](#5-attendance)
+- [6. Announcements](#6-announcements)
+- [7. Shift Reassignment](#7-shift-reassignment)
+- [8. Shift Swap Requests *(reserved for Staff Portal)*](#8-shift-swap-requests-reserved-for-staff-portal)
+- [9. Shared Types](#9-shared-types)
+- [10. Error Model](#10-error-model)
+- [11. Rate Limits, Idempotency, Versioning](#11-rate-limits-idempotency-versioning)
+- [12. Testing & Debugging](#12-testing-debugging)
+
+---
+
 ## 1. Overview
 
 Staff Harmony Hub does not expose a public REST API. All app-internal server logic is delivered as **typed RPC** using TanStack Start's `createServerFn` from `@tanstack/react-start`. The client invokes each function through the generated stub (either directly in a route loader or via `useServerFn` in components); the transport is TanStack's internal serialized RPC over HTTP.

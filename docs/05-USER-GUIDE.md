@@ -7,6 +7,25 @@
 
 ---
 
+## Table of Contents
+
+- [1. Welcome](#1-welcome)
+- [2. Getting Started](#2-getting-started)
+- [3. The App Shell](#3-the-app-shell)
+- [4. Dashboard](#4-dashboard)
+- [5. Staff Directory](#5-staff-directory)
+- [6. Weekly Schedule](#6-weekly-schedule)
+- [7. Attendance](#7-attendance)
+- [8. Announcements](#8-announcements)
+- [9. Shift Reassignment](#9-shift-reassignment)
+- [10. Reports](#10-reports)
+- [11. Roles at a Glance](#11-roles-at-a-glance)
+- [12. Best Practices](#12-best-practices)
+- [13. Troubleshooting](#13-troubleshooting)
+- [14. What's Coming Next](#14-whats-coming-next)
+
+---
+
 ## 1. Welcome
 
 Staff Harmony Hub is your single place to run the day-to-day people side of the restaurant: who's on your team, who's working when, who's on the floor right now, what's coming up this week, and how the last month looked. This guide walks you through every screen in the Manager Portal, in the order you'll typically use them.

@@ -8,6 +8,27 @@
 
 ---
 
+## Table of Contents
+
+- [1. Executive Summary](#1-executive-summary)
+- [2. Product Vision](#2-product-vision)
+- [3. Business Goals](#3-business-goals)
+- [4. Problem Statement](#4-problem-statement)
+- [5. Target Users](#5-target-users)
+- [6. User Personas](#6-user-personas)
+- [7. User Roles](#7-user-roles)
+- [8. Functional Requirements](#8-functional-requirements)
+- [9. Non-Functional Requirements](#9-non-functional-requirements)
+- [10. Current Features (Shipped in Prototype)](#10-current-features-shipped-in-prototype)
+- [11. Out-of-Scope Features (Prototype)](#11-out-of-scope-features-prototype)
+- [12. Success Metrics](#12-success-metrics)
+- [13. Assumptions](#13-assumptions)
+- [14. Constraints](#14-constraints)
+- [15. Risks](#15-risks)
+- [16. Future Roadmap](#16-future-roadmap)
+
+---
+
 ## 1. Executive Summary
 
 Staff Harmony Hub is a lightweight, mobile-first restaurant staff management system built for small full-service restaurants (under ~15 employees). The current prototype delivers a Manager Portal that consolidates the day-to-day operational tasks a restaurant manager repeats every week: keeping the staff roster current, building the weekly schedule, tracking who is on the floor, posting announcements, reassigning shifts, and reviewing basic operational reports.
