@@ -9,6 +9,25 @@
 
 ---
 
+## Table of Contents
+
+- [1. Purpose & Scope](#1-purpose-scope)
+- [2. Architecture Overview](#2-architecture-overview)
+- [3. Technology Stack](#3-technology-stack)
+- [4. Project Structure](#4-project-structure)
+- [5. Data Model](#5-data-model)
+- [6. Authentication & Authorization](#6-authentication-authorization)
+- [7. Module Contracts](#7-module-contracts)
+- [8. Client Data Flow](#8-client-data-flow)
+- [9. Routing Map](#9-routing-map)
+- [10. Non-Functional Requirements](#10-non-functional-requirements)
+- [11. Build, Deploy & Environments](#11-build-deploy-environments)
+- [12. Coding Standards](#12-coding-standards)
+- [13. Known Technical Debt & Deferred Work](#13-known-technical-debt-deferred-work)
+- [14. Traceability to PRD](#14-traceability-to-prd)
+
+---
+
 ## 1. Purpose & Scope
 
 This document translates the Product Requirements Document (PRD) into a concrete technical specification for the current prototype of Staff Harmony Hub. It defines the runtime architecture, data model, security model, module-level contracts, and non-functional constraints that the codebase currently implements.

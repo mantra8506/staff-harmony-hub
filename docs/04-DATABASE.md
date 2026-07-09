@@ -7,6 +7,21 @@
 
 ---
 
+## Table of Contents
+
+- [1. Overview](#1-overview)
+- [2. Enumerated Types](#2-enumerated-types)
+- [3. Security-Definer Functions](#3-security-definer-functions)
+- [4. Tables](#4-tables)
+- [5. Relationships (ER Summary)](#5-relationships-er-summary)
+- [6. Triggers](#6-triggers)
+- [7. `availability` JSON Shape](#7-availability-json-shape)
+- [8. Sequences](#8-sequences)
+- [9. Security Posture Summary](#9-security-posture-summary)
+- [10. Known Gaps & Deferred Work](#10-known-gaps-deferred-work)
+
+---
+
 ## 1. Overview
 
 This document describes the Postgres data model backing Staff Harmony Hub and the Row-Level Security (RLS) policies enforced on every application table. It reflects the schema currently deployed in Lovable Cloud (Supabase).
