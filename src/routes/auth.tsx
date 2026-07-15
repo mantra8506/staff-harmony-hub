@@ -29,22 +29,35 @@ function AuthPage() {
     checkBootstrapNeeded().then((r) => setNeedsBootstrap(r.needsBootstrap)).catch(() => {});
   }, []);
 
+  async function goHomeFor(userId: string) {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const isManager = (data ?? []).some((r) => r.role === "manager");
+    navigate({ to: isManager ? "/dashboard" : "/my", replace: true });
+  }
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/dashboard", replace: true });
+      if (data.user) goHomeFor(data.user.id);
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/dashboard", replace: true });
+    if (data.user) await goHomeFor(data.user.id);
   }
 
   return (

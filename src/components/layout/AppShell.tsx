@@ -15,7 +15,8 @@ import {
   Utensils,
   X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { User as UserIcon } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,32 @@ const NAV: NavItem[] = [
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
+const STAFF_NAV: NavItem[] = [
+  { to: "/my", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/my/schedule", label: "My Schedule", icon: CalendarDays },
+  { to: "/my/attendance", label: "Attendance", icon: ClipboardList },
+  { to: "/my/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/my/profile", label: "My Profile", icon: UserIcon },
+];
+
+// Prefixes only managers may access. Staff hitting one gets bounced to /my.
+const MANAGER_ONLY_PREFIXES = [
+  "/dashboard",
+  "/staff",
+  "/schedule",
+  "/attendance",
+  "/announcements",
+  "/reports",
+  "/settings",
+  "/swaps",
+];
+
+function isManagerOnlyPath(path: string): boolean {
+  return MANAGER_ONLY_PREFIXES.some(
+    (p) => path === p || path.startsWith(p + "/"),
+  );
+}
+
 function initials(name?: string | null, fallback = "M") {
   if (!name) return fallback;
   return name
@@ -88,14 +115,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { user, roles } = useCurrentUser();
+  const { user, roles, loading } = useCurrentUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isManager = roles.includes("manager");
+  const activeNav = isManager ? NAV : STAFF_NAV;
+  const homePath = isManager ? "/dashboard" : "/my";
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ??
     user?.email?.split("@")[0] ??
-    "Manager";
+    (isManager ? "Manager" : "Staff");
+
+  // Redirect staff away from manager-only URLs (defense-in-depth vs URL bar).
+  useEffect(() => {
+    if (loading || !user) return;
+    if (!isManager && isManagerOnlyPath(pathname)) {
+      navigate({ to: "/my", replace: true });
+    }
+  }, [loading, isManager, pathname, user, navigate]);
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -109,7 +146,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
           {/* Brand */}
-          <Link to="/dashboard" className="flex min-w-0 items-center gap-3">
+          <Link to={homePath} className="flex min-w-0 items-center gap-3">
             <RestaurantMark />
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
               <span className="truncate text-sm font-semibold">
@@ -123,7 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {/* Middle nav */}
           <nav className="mx-auto hidden items-center gap-1 lg:flex">
-            {NAV.map((item) => {
+            {activeNav.map((item) => {
               const active = item.to && pathname.startsWith(item.to);
               const cls = cn(
                 "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
@@ -194,8 +231,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-                  <Settings className="h-4 w-4" /> Settings
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate({ to: isManager ? "/settings" : "/my/profile" })
+                  }
+                >
+                  <Settings className="h-4 w-4" />{" "}
+                  {isManager ? "Settings" : "My profile"}
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled>
                   <Bell className="h-4 w-4" /> Notifications
@@ -223,7 +265,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="border-t border-border bg-background lg:hidden">
             <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
               <div className="flex flex-col gap-1">
-                {NAV.map((item) => {
+                {activeNav.map((item) => {
                   const active = item.to && pathname.startsWith(item.to);
                   const cls = cn(
                     "flex items-center justify-between rounded-md px-3 py-2 text-sm",
@@ -275,7 +317,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile bottom nav for primary destinations */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-7xl">
-          {NAV.filter((n) => n.to && !n.soon).map((item) => {
+          {activeNav.filter((n) => n.to && !n.soon).map((item) => {
             const active = pathname.startsWith(item.to!);
             return (
               <Link
