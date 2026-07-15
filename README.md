@@ -121,6 +121,13 @@ src/
       announcements.tsx
       swaps.tsx
       reports.tsx
+      settings.tsx
+      my.tsx                    # Staff Portal layout
+      my.index.tsx              # /my — staff dashboard
+      my.schedule.tsx
+      my.attendance.tsx
+      my.announcements.tsx
+      my.profile.tsx
   features/
     staff/                      # Staff Directory feature
     schedule/                   # Weekly Schedule feature
