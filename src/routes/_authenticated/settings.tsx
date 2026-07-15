@@ -226,22 +226,53 @@ function SettingsPage() {
           <CardContent className="space-y-5">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt="Profile photo" /> : null}
                 <AvatarFallback className="bg-brand text-brand-foreground text-lg">
                   {initials || <User className="h-5 w-5" />}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <Label className="text-xs text-muted-foreground">Profile photo</Label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Button type="button" variant="outline" size="sm" disabled>
-                    <Upload className="mr-2 h-4 w-4" /> Upload photo
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    {avatarPath ? "Change photo" : "Upload photo"}
                   </Button>
+                  {avatarPath ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={uploading}
+                      onClick={handleAvatarRemove}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Remove
+                    </Button>
+                  ) : null}
                   <span className="text-xs text-muted-foreground">
-                    Coming soon
+                    PNG or JPG, up to 5&nbsp;MB.
                   </span>
                 </div>
               </div>
             </div>
+
 
             <Separator />
 
