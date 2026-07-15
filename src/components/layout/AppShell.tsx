@@ -115,14 +115,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { user, roles } = useCurrentUser();
+  const { user, roles, loading } = useCurrentUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isManager = roles.includes("manager");
+  const activeNav = isManager ? NAV : STAFF_NAV;
+  const homePath = isManager ? "/dashboard" : "/my";
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ??
     user?.email?.split("@")[0] ??
-    "Manager";
+    (isManager ? "Manager" : "Staff");
+
+  // Redirect staff away from manager-only URLs (defense-in-depth vs URL bar).
+  useEffect(() => {
+    if (loading || !user) return;
+    if (!isManager && isManagerOnlyPath(pathname)) {
+      navigate({ to: "/my", replace: true });
+    }
+  }, [loading, isManager, pathname, user, navigate]);
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
