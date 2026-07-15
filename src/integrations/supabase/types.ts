@@ -109,6 +109,7 @@ export type Database = {
       profiles: {
         Row: {
           availability: Json
+          avatar_url: string | null
           created_at: string
           employee_code: string | null
           full_name: string
@@ -125,6 +126,7 @@ export type Database = {
         }
         Insert: {
           availability?: Json
+          avatar_url?: string | null
           created_at?: string
           employee_code?: string | null
           full_name: string
@@ -141,6 +143,7 @@ export type Database = {
         }
         Update: {
           availability?: Json
+          avatar_url?: string | null
           created_at?: string
           employee_code?: string | null
           full_name?: string
