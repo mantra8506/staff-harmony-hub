@@ -18,10 +18,15 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedMyRouteImport } from './routes/_authenticated/my'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedAnnouncementsRouteImport } from './routes/_authenticated/announcements'
 import { Route as AuthenticatedStaffUserIdRouteImport } from './routes/_authenticated/staff.$userId'
+import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authenticated/my.schedule'
+import { Route as AuthenticatedMyProfileRouteImport } from './routes/_authenticated/my.profile'
+import { Route as AuthenticatedMyAttendanceRouteImport } from './routes/_authenticated/my.attendance'
+import { Route as AuthenticatedMyAnnouncementsRouteImport } from './routes/_authenticated/my.announcements'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
@@ -67,6 +72,11 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyRoute = AuthenticatedMyRouteImport.update({
+  id: '/my',
+  path: '/my',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -89,6 +99,28 @@ const AuthenticatedStaffUserIdRoute =
     path: '/$userId',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedMyScheduleRoute = AuthenticatedMyScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => AuthenticatedMyRoute,
+} as any)
+const AuthenticatedMyProfileRoute = AuthenticatedMyProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedMyRoute,
+} as any)
+const AuthenticatedMyAttendanceRoute =
+  AuthenticatedMyAttendanceRouteImport.update({
+    id: '/attendance',
+    path: '/attendance',
+    getParentRoute: () => AuthenticatedMyRoute,
+  } as any)
+const AuthenticatedMyAnnouncementsRoute =
+  AuthenticatedMyAnnouncementsRouteImport.update({
+    id: '/announcements',
+    path: '/announcements',
+    getParentRoute: () => AuthenticatedMyRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,11 +129,16 @@ export interface FileRoutesByFullPath {
   '/announcements': typeof AuthenticatedAnnouncementsRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/my': typeof AuthenticatedMyRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/swaps': typeof AuthenticatedSwapsRoute
+  '/my/announcements': typeof AuthenticatedMyAnnouncementsRoute
+  '/my/attendance': typeof AuthenticatedMyAttendanceRoute
+  '/my/profile': typeof AuthenticatedMyProfileRoute
+  '/my/schedule': typeof AuthenticatedMyScheduleRoute
   '/staff/$userId': typeof AuthenticatedStaffUserIdRoute
 }
 export interface FileRoutesByTo {
@@ -111,11 +148,16 @@ export interface FileRoutesByTo {
   '/announcements': typeof AuthenticatedAnnouncementsRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/my': typeof AuthenticatedMyRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/swaps': typeof AuthenticatedSwapsRoute
+  '/my/announcements': typeof AuthenticatedMyAnnouncementsRoute
+  '/my/attendance': typeof AuthenticatedMyAttendanceRoute
+  '/my/profile': typeof AuthenticatedMyProfileRoute
+  '/my/schedule': typeof AuthenticatedMyScheduleRoute
   '/staff/$userId': typeof AuthenticatedStaffUserIdRoute
 }
 export interface FileRoutesById {
@@ -127,11 +169,16 @@ export interface FileRoutesById {
   '/_authenticated/announcements': typeof AuthenticatedAnnouncementsRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/my': typeof AuthenticatedMyRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/_authenticated/swaps': typeof AuthenticatedSwapsRoute
+  '/_authenticated/my/announcements': typeof AuthenticatedMyAnnouncementsRoute
+  '/_authenticated/my/attendance': typeof AuthenticatedMyAttendanceRoute
+  '/_authenticated/my/profile': typeof AuthenticatedMyProfileRoute
+  '/_authenticated/my/schedule': typeof AuthenticatedMyScheduleRoute
   '/_authenticated/staff/$userId': typeof AuthenticatedStaffUserIdRoute
 }
 export interface FileRouteTypes {
@@ -143,11 +190,16 @@ export interface FileRouteTypes {
     | '/announcements'
     | '/attendance'
     | '/dashboard'
+    | '/my'
     | '/reports'
     | '/schedule'
     | '/settings'
     | '/staff'
     | '/swaps'
+    | '/my/announcements'
+    | '/my/attendance'
+    | '/my/profile'
+    | '/my/schedule'
     | '/staff/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -157,11 +209,16 @@ export interface FileRouteTypes {
     | '/announcements'
     | '/attendance'
     | '/dashboard'
+    | '/my'
     | '/reports'
     | '/schedule'
     | '/settings'
     | '/staff'
     | '/swaps'
+    | '/my/announcements'
+    | '/my/attendance'
+    | '/my/profile'
+    | '/my/schedule'
     | '/staff/$userId'
   id:
     | '__root__'
@@ -172,11 +229,16 @@ export interface FileRouteTypes {
     | '/_authenticated/announcements'
     | '/_authenticated/attendance'
     | '/_authenticated/dashboard'
+    | '/_authenticated/my'
     | '/_authenticated/reports'
     | '/_authenticated/schedule'
     | '/_authenticated/settings'
     | '/_authenticated/staff'
     | '/_authenticated/swaps'
+    | '/_authenticated/my/announcements'
+    | '/_authenticated/my/attendance'
+    | '/_authenticated/my/profile'
+    | '/_authenticated/my/schedule'
     | '/_authenticated/staff/$userId'
   fileRoutesById: FileRoutesById
 }
@@ -252,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my': {
+      id: '/_authenticated/my'
+      path: '/my'
+      fullPath: '/my'
+      preLoaderRoute: typeof AuthenticatedMyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -280,8 +349,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffUserIdRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/my/schedule': {
+      id: '/_authenticated/my/schedule'
+      path: '/schedule'
+      fullPath: '/my/schedule'
+      preLoaderRoute: typeof AuthenticatedMyScheduleRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
+    '/_authenticated/my/profile': {
+      id: '/_authenticated/my/profile'
+      path: '/profile'
+      fullPath: '/my/profile'
+      preLoaderRoute: typeof AuthenticatedMyProfileRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
+    '/_authenticated/my/attendance': {
+      id: '/_authenticated/my/attendance'
+      path: '/attendance'
+      fullPath: '/my/attendance'
+      preLoaderRoute: typeof AuthenticatedMyAttendanceRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
+    '/_authenticated/my/announcements': {
+      id: '/_authenticated/my/announcements'
+      path: '/announcements'
+      fullPath: '/my/announcements'
+      preLoaderRoute: typeof AuthenticatedMyAnnouncementsRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
   }
 }
+
+interface AuthenticatedMyRouteChildren {
+  AuthenticatedMyAnnouncementsRoute: typeof AuthenticatedMyAnnouncementsRoute
+  AuthenticatedMyAttendanceRoute: typeof AuthenticatedMyAttendanceRoute
+  AuthenticatedMyProfileRoute: typeof AuthenticatedMyProfileRoute
+  AuthenticatedMyScheduleRoute: typeof AuthenticatedMyScheduleRoute
+}
+
+const AuthenticatedMyRouteChildren: AuthenticatedMyRouteChildren = {
+  AuthenticatedMyAnnouncementsRoute: AuthenticatedMyAnnouncementsRoute,
+  AuthenticatedMyAttendanceRoute: AuthenticatedMyAttendanceRoute,
+  AuthenticatedMyProfileRoute: AuthenticatedMyProfileRoute,
+  AuthenticatedMyScheduleRoute: AuthenticatedMyScheduleRoute,
+}
+
+const AuthenticatedMyRouteWithChildren = AuthenticatedMyRoute._addFileChildren(
+  AuthenticatedMyRouteChildren,
+)
 
 interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffUserIdRoute: typeof AuthenticatedStaffUserIdRoute
@@ -298,6 +413,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnnouncementsRoute: typeof AuthenticatedAnnouncementsRoute
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMyRoute: typeof AuthenticatedMyRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -309,6 +425,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnnouncementsRoute: AuthenticatedAnnouncementsRoute,
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMyRoute: AuthenticatedMyRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
