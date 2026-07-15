@@ -27,6 +27,7 @@ import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMyProfileRouteImport } from './routes/_authenticated/my.profile'
 import { Route as AuthenticatedMyAttendanceRouteImport } from './routes/_authenticated/my.attendance'
 import { Route as AuthenticatedMyAnnouncementsRouteImport } from './routes/_authenticated/my.announcements'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
@@ -121,6 +122,12 @@ const AuthenticatedMyAnnouncementsRoute =
     path: '/announcements',
     getParentRoute: () => AuthenticatedMyRoute,
   } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/my/profile': typeof AuthenticatedMyProfileRoute
   '/my/schedule': typeof AuthenticatedMyScheduleRoute
   '/staff/$userId': typeof AuthenticatedStaffUserIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,6 +167,7 @@ export interface FileRoutesByTo {
   '/my/profile': typeof AuthenticatedMyProfileRoute
   '/my/schedule': typeof AuthenticatedMyScheduleRoute
   '/staff/$userId': typeof AuthenticatedStaffUserIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,6 +189,7 @@ export interface FileRoutesById {
   '/_authenticated/my/profile': typeof AuthenticatedMyProfileRoute
   '/_authenticated/my/schedule': typeof AuthenticatedMyScheduleRoute
   '/_authenticated/staff/$userId': typeof AuthenticatedStaffUserIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/my/profile'
     | '/my/schedule'
     | '/staff/$userId'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/my/profile'
     | '/my/schedule'
     | '/staff/$userId'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -240,6 +252,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my/profile'
     | '/_authenticated/my/schedule'
     | '/_authenticated/staff/$userId'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,6 +260,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SetupRoute: typeof SetupRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -377,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyAnnouncementsRouteImport
       parentRoute: typeof AuthenticatedMyRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -441,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SetupRoute: SetupRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
