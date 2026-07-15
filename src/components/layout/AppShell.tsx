@@ -135,10 +135,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [loading, isManager, pathname, user, navigate]);
 
   async function handleSignOut() {
+    // Navigate away from the authenticated tree first, then tear down state.
+    // Otherwise onAuthStateChange('SIGNED_OUT') triggers router.invalidate(),
+    // which re-runs the current loader (e.g. dashboard -> listStaff) with
+    // no bearer token and throws "Unauthorized" before the redirect lands.
+    navigate({ to: "/auth", replace: true });
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
   }
 
   return (
