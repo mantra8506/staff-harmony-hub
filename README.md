@@ -2,7 +2,7 @@
 
 A mobile-first staff management platform for small-to-mid sized restaurants. Built for **Station 31 Restaurant & Bar** as the pilot deployment, it helps managers run their team — directory, scheduling, attendance, announcements, and reporting — without enterprise-grade complexity.
 
-> **Status:** Prototype complete — Manager Portal is live end-to-end. Dedicated Staff Portal, payroll, and multi-restaurant support are on the roadmap.
+> **Status:** First prototype complete — Manager Portal and Staff Portal are both live end-to-end. Branded email delivery is configured (DNS verifying). Payroll and multi-restaurant support are on the roadmap.
 
 ---
 
@@ -34,8 +34,9 @@ This project is being built in **deliberate, professional phases** rather than r
 | 3 | Staff Directory + Auth | Complete |
 | 4 | Weekly Schedule (prototype) | Complete |
 | 5 | Attendance, Announcements, Reports, Reassignment | Complete |
-| 6 | Dedicated Staff Portal (self-service) | Planned |
-| 7 | Payroll export, multi-restaurant support | Future |
+| 6 | Dedicated Staff Portal (self-service) | Complete |
+| 7 | Branded email (custom sender domain) | Complete (DNS verifying) |
+| 8 | Payroll export, multi-restaurant support | Future |
 
 Full planning history lives in [`.lovable/plan.md`](./.lovable/plan.md).
 
@@ -77,8 +78,7 @@ Start with the PRD for product context, the TRD for architecture, and the Dev Se
 
 ## Feature Modules
 
-Live in the Manager Portal today:
-
+### Manager Portal
 - **Dashboard** — time-aware greeting, real-time metrics (total staff, on-shift today, pending invites), quick actions, module status grid.
 - **Staff Directory** — 4-step invite wizard, auto-generated employee codes (S001…), positions, availability by shift (morning/afternoon/evening), max weekly hours, active/inactive status with auth sync, resend/cancel invites.
 - **Weekly Schedule** — 7-day grid (desktop) / single-day view (mobile), create-edit-delete shifts, position-based colors, empty state onboarding.
@@ -86,6 +86,15 @@ Live in the Manager Portal today:
 - **Announcements** — manager CRUD, staff read; dated posts surfaced on dashboard.
 - **Shift Reassignment** — manager-only tool to reassign an existing shift to another employee (simplified swap flow).
 - **Reports** — 30-day summary cards (total hours, attendance %) and per-employee breakdown table.
+- **Settings** — restaurant profile, dark-mode toggle, personal profile, avatar upload (private Storage bucket), notification preferences.
+
+### Staff Portal (`/my/*`)
+- **My Dashboard** — today's shift, next upcoming shift, quick clock in/out, latest announcements.
+- **My Schedule** — personal shifts only, mobile-first stacked cards.
+- **My Attendance** — personal clock-in history.
+- **Announcements** — read-only team feed.
+- **My Profile** — view name/email/role, edit phone and password, upload avatar.
+- **Role-aware navigation** — staff never see manager tools; hitting a manager URL redirects to `/my`. Login routes managers → `/dashboard`, staff → `/my`.
 
 See the [Manager User Guide](./docs/05-USER-GUIDE.md) for detailed walkthroughs.
 
@@ -112,6 +121,13 @@ src/
       announcements.tsx
       swaps.tsx
       reports.tsx
+      settings.tsx
+      my.tsx                    # Staff Portal layout
+      my.index.tsx              # /my — staff dashboard
+      my.schedule.tsx
+      my.attendance.tsx
+      my.announcements.tsx
+      my.profile.tsx
   features/
     staff/                      # Staff Directory feature
     schedule/                   # Weekly Schedule feature
@@ -240,7 +256,10 @@ Full contribution workflow in [`docs/06-DEV-SETUP.md`](./docs/06-DEV-SETUP.md).
 - [x] Announcements
 - [x] Shift Reassignment
 - [x] Reports (30-day summaries)
-- [ ] Dedicated Staff Portal (self-service schedule + availability)
+- [x] Dedicated Staff Portal (self-service schedule, attendance, announcements, profile)
+- [x] Settings (restaurant profile, dark mode, avatar upload)
+- [x] Custom email sender domain (`notify.staffhh.com` — DNS verifying)
+- [ ] Branded auth email templates (invite, password reset, magic link)
 - [ ] Shift swap requests with approvals
 - [ ] Draft-to-publish schedule workflow
 - [ ] Payroll export
