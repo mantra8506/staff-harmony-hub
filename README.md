@@ -2,7 +2,7 @@
 
 A mobile-first staff management platform for small-to-mid sized restaurants. Built for **Station 31 Restaurant & Bar** as the pilot deployment, it helps managers run their team — directory, scheduling, attendance, announcements, and reporting — without enterprise-grade complexity.
 
-> **Status:** Prototype complete — Manager Portal is live end-to-end. Dedicated Staff Portal, payroll, and multi-restaurant support are on the roadmap.
+> **Status:** First prototype complete — Manager Portal and Staff Portal are both live end-to-end. Branded email delivery is configured (DNS verifying). Payroll and multi-restaurant support are on the roadmap.
 
 ---
 
