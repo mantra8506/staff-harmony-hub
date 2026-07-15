@@ -194,7 +194,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
                   <Settings className="h-4 w-4" /> Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled>
