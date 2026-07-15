@@ -231,8 +231,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-                  <Settings className="h-4 w-4" /> Settings
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate({ to: isManager ? "/settings" : "/my/profile" })
+                  }
+                >
+                  <Settings className="h-4 w-4" />{" "}
+                  {isManager ? "Settings" : "My profile"}
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled>
                   <Bell className="h-4 w-4" /> Notifications
