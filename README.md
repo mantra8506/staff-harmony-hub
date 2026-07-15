@@ -34,8 +34,9 @@ This project is being built in **deliberate, professional phases** rather than r
 | 3 | Staff Directory + Auth | Complete |
 | 4 | Weekly Schedule (prototype) | Complete |
 | 5 | Attendance, Announcements, Reports, Reassignment | Complete |
-| 6 | Dedicated Staff Portal (self-service) | Planned |
-| 7 | Payroll export, multi-restaurant support | Future |
+| 6 | Dedicated Staff Portal (self-service) | Complete |
+| 7 | Branded email (custom sender domain) | Complete (DNS verifying) |
+| 8 | Payroll export, multi-restaurant support | Future |
 
 Full planning history lives in [`.lovable/plan.md`](./.lovable/plan.md).
 
