@@ -52,7 +52,7 @@ const NAV: NavItem[] = [
   { to: "/swaps", label: "Shift Swaps", icon: ArrowLeftRight },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/reports", label: "Reports", icon: BarChart3 },
-  { label: "Settings", icon: Settings, soon: true },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 function initials(name?: string | null, fallback = "M") {
