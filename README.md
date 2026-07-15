@@ -256,7 +256,10 @@ Full contribution workflow in [`docs/06-DEV-SETUP.md`](./docs/06-DEV-SETUP.md).
 - [x] Announcements
 - [x] Shift Reassignment
 - [x] Reports (30-day summaries)
-- [ ] Dedicated Staff Portal (self-service schedule + availability)
+- [x] Dedicated Staff Portal (self-service schedule, attendance, announcements, profile)
+- [x] Settings (restaurant profile, dark mode, avatar upload)
+- [x] Custom email sender domain (`notify.staffhh.com` — DNS verifying)
+- [ ] Branded auth email templates (invite, password reset, magic link)
 - [ ] Shift swap requests with approvals
 - [ ] Draft-to-publish schedule workflow
 - [ ] Payroll export
