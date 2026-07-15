@@ -160,7 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {/* Middle nav */}
           <nav className="mx-auto hidden items-center gap-1 lg:flex">
-            {NAV.map((item) => {
+            {activeNav.map((item) => {
               const active = item.to && pathname.startsWith(item.to);
               const cls = cn(
                 "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
@@ -260,7 +260,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="border-t border-border bg-background lg:hidden">
             <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
               <div className="flex flex-col gap-1">
-                {NAV.map((item) => {
+                {activeNav.map((item) => {
                   const active = item.to && pathname.startsWith(item.to);
                   const cls = cn(
                     "flex items-center justify-between rounded-md px-3 py-2 text-sm",
@@ -312,7 +312,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile bottom nav for primary destinations */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-7xl">
-          {NAV.filter((n) => n.to && !n.soon).map((item) => {
+          {activeNav.filter((n) => n.to && !n.soon).map((item) => {
             const active = pathname.startsWith(item.to!);
             return (
               <Link
