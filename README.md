@@ -78,8 +78,7 @@ Start with the PRD for product context, the TRD for architecture, and the Dev Se
 
 ## Feature Modules
 
-Live in the Manager Portal today:
-
+### Manager Portal
 - **Dashboard** — time-aware greeting, real-time metrics (total staff, on-shift today, pending invites), quick actions, module status grid.
 - **Staff Directory** — 4-step invite wizard, auto-generated employee codes (S001…), positions, availability by shift (morning/afternoon/evening), max weekly hours, active/inactive status with auth sync, resend/cancel invites.
 - **Weekly Schedule** — 7-day grid (desktop) / single-day view (mobile), create-edit-delete shifts, position-based colors, empty state onboarding.
@@ -87,6 +86,15 @@ Live in the Manager Portal today:
 - **Announcements** — manager CRUD, staff read; dated posts surfaced on dashboard.
 - **Shift Reassignment** — manager-only tool to reassign an existing shift to another employee (simplified swap flow).
 - **Reports** — 30-day summary cards (total hours, attendance %) and per-employee breakdown table.
+- **Settings** — restaurant profile, dark-mode toggle, personal profile, avatar upload (private Storage bucket), notification preferences.
+
+### Staff Portal (`/my/*`)
+- **My Dashboard** — today's shift, next upcoming shift, quick clock in/out, latest announcements.
+- **My Schedule** — personal shifts only, mobile-first stacked cards.
+- **My Attendance** — personal clock-in history.
+- **Announcements** — read-only team feed.
+- **My Profile** — view name/email/role, edit phone and password, upload avatar.
+- **Role-aware navigation** — staff never see manager tools; hitting a manager URL redirects to `/my`. Login routes managers → `/dashboard`, staff → `/my`.
 
 See the [Manager User Guide](./docs/05-USER-GUIDE.md) for detailed walkthroughs.
 
