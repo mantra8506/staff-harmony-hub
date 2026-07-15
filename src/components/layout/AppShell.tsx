@@ -56,6 +56,32 @@ const NAV: NavItem[] = [
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
+const STAFF_NAV: NavItem[] = [
+  { to: "/my", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/my/schedule", label: "My Schedule", icon: CalendarDays },
+  { to: "/my/attendance", label: "Attendance", icon: ClipboardList },
+  { to: "/my/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/my/profile", label: "My Profile", icon: UserIcon },
+];
+
+// Prefixes only managers may access. Staff hitting one gets bounced to /my.
+const MANAGER_ONLY_PREFIXES = [
+  "/dashboard",
+  "/staff",
+  "/schedule",
+  "/attendance",
+  "/announcements",
+  "/reports",
+  "/settings",
+  "/swaps",
+];
+
+function isManagerOnlyPath(path: string): boolean {
+  return MANAGER_ONLY_PREFIXES.some(
+    (p) => path === p || path.startsWith(p + "/"),
+  );
+}
+
 function initials(name?: string | null, fallback = "M") {
   if (!name) return fallback;
   return name
