@@ -50,6 +50,11 @@ function SettingsPage() {
   const [notifyShifts, setNotifyShifts] = useState(true);
   const [notifyAnnouncements, setNotifyAnnouncements] = useState(true);
 
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     const stored = (typeof window !== "undefined" && localStorage.getItem(THEME_KEY)) as
       | "light"
@@ -61,9 +66,98 @@ function SettingsPage() {
     setDarkMode(isDark);
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const path = (data as { avatar_url: string | null } | null)?.avatar_url ?? null;
+      setAvatarPath(path);
+      if (path) {
+        const { data: signed } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(path, 60 * 60);
+        if (!cancelled) setAvatarUrl(signed?.signedUrl ?? null);
+      } else {
+        setAvatarUrl(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   function toggleDark(next: boolean) {
     setDarkMode(next);
     applyTheme(next ? "dark" : "light");
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+
+      const { error: dbErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: path })
+        .eq("id", user.id);
+      if (dbErr) throw dbErr;
+
+      if (avatarPath && avatarPath !== path) {
+        await supabase.storage.from("avatars").remove([avatarPath]);
+      }
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(path, 60 * 60);
+      setAvatarPath(path);
+      setAvatarUrl(signed?.signedUrl ?? null);
+      toast.success("Profile photo updated");
+    } catch (err) {
+      toast.error("Upload failed", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleAvatarRemove() {
+    if (!user || !avatarPath) return;
+    setUploading(true);
+    try {
+      await supabase.storage.from("avatars").remove([avatarPath]);
+      await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+      setAvatarPath(null);
+      setAvatarUrl(null);
+      toast.success("Profile photo removed");
+    } catch (err) {
+      toast.error("Could not remove photo", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setUploading(false);
+    }
   }
 
   const initials = (managerName || email || "?")
