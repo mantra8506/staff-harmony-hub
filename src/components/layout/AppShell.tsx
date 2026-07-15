@@ -146,7 +146,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
           {/* Brand */}
-          <Link to="/dashboard" className="flex min-w-0 items-center gap-3">
+          <Link to={homePath} className="flex min-w-0 items-center gap-3">
             <RestaurantMark />
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
               <span className="truncate text-sm font-semibold">
